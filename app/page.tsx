@@ -10,17 +10,17 @@ export default function Home() {
     const BASE_COUNT = 247;
 
     useEffect(() => {
-      fetch("/api/waitlist")
-        .then(res => res.json())
-        .then(data => {
-          if (data.count !== undefined) {
-            setCount(BASE_COUNT + data.count);
-          }
-        })
-        .catch(() => {});
+        fetch("/api/waitlist")
+            .then(res => res.json())
+            .then(data => {
+                if (data.count !== undefined) {
+                    setCount(BASE_COUNT + data.count);
+                }
+            })
+            .catch(() => { });
     }, []);
 
-      const handleSubmit = async () => {
+    const handleSubmit = async () => {
         if (!email || !email.includes("@")) {
             setError("Email invalide");
             return;
@@ -47,11 +47,11 @@ export default function Home() {
         }
     };
 
-        return (
+    return (
         <div style={{ background: "#0A0F1E", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "-apple-system, sans-serif" }}>
             <div style={{ maxWidth: "480px", width: "100%", textAlign: "center" }}>
 
-                
+
                 {/* Logo */}
                 <div style={{ fontSize: "36px", fontWeight: 800, letterSpacing: "-2px", marginBottom: "4px", color: "white" }}>
                     CLIK<span style={{ color: "#00E5A0" }}>XIA</span>
@@ -151,6 +151,12 @@ export default function Home() {
                         <div style={{ fontSize: "32px", marginBottom: "8px" }}>🎯</div>
                         <div style={{ fontSize: "18px", fontWeight: 800, color: "#00E5A0", marginBottom: "4px" }}>Vous êtes sur la liste !</div>
                         <div style={{ fontSize: "13px", color: "#888" }}>Vous serez parmi les premiers à accéder à CLIKXIA. On vous contacte dès l'ouverture.</div>
+                        <button
+                            onClick={() => { setSubmitted(false); setEmail(""); setError(""); }}
+                            style={{ marginTop: "12px", background: "none", border: "1px solid rgba(0,229,160,0.3)", color: "#00E5A0", borderRadius: "20px", padding: "8px 16px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}
+                        >
+                            Inscrire une autre personne →
+                        </button>
                     </div>
                 )}
 
