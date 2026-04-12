@@ -4,63 +4,66 @@ const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const FINNHUB_KEY = process.env.FINNHUB_API_KEY;
 
 async function getCryptoData(coinId: string) {
-  try {
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=7&interval=daily`
-    );
-    const data = await res.json();
-    if (!data?.prices || data.prices.length === 0) return null;
+    try {
+        const res = await fetch(
+            `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=7&interval=daily`
+        );
+        const data = await res.json();
+        
+        console.log("CoinGecko response for", coinId, ":", JSON.stringify(data).slice(0, 200));
 
-    const prices = data.prices.map((p: number[]) => p[1]);
-    const volumes = data.total_volumes.map((v: number[]) => v[1]);
-    const lastIndex = prices.length - 1;
-    const price = prices[lastIndex];
-    const prevPrice = prices[lastIndex - 1];
-    const change = price - prevPrice;
-    const changePct = ((change / prevPrice) * 100).toFixed(2);
-    const volume = volumes[lastIndex];
-    const avgVolume = volumes.reduce((a: number, b: number) => a + b, 0) / volumes.length;
-    const volumeRatio = (volume / avgVolume).toFixed(2);
-    const high7d = Math.max(...prices);
-    const low7d = Math.min(...prices);
-    const momentum7d = ((price - prices[0]) / prices[0] * 100).toFixed(2);
+        if (!data?.prices || data.prices.length === 0) return null;
 
-    return {
-      price,
-      change,
-      changePct: `${changePct}%`,
-      volume,
-      volumeRatio,
-      high: high7d,
-      low: low7d,
-      high7d,
-      low7d,
-      momentum7d,
-    };
-  } catch {
-    return null;
-  }
+        const prices = data.prices.map((p: number[]) => p[1]);
+        const volumes = data.total_volumes.map((v: number[]) => v[1]);
+        const lastIndex = prices.length - 1;
+        const price = prices[lastIndex];
+        const prevPrice = prices[lastIndex - 1];
+        const change = price - prevPrice;
+        const changePct = ((change / prevPrice) * 100).toFixed(2);
+        const volume = volumes[lastIndex];
+        const avgVolume = volumes.reduce((a: number, b: number) => a + b, 0) / volumes.length;
+        const volumeRatio = (volume / avgVolume).toFixed(2);
+        const high7d = Math.max(...prices);
+        const low7d = Math.min(...prices);
+        const momentum7d = ((price - prices[0]) / prices[0] * 100).toFixed(2);
+
+        return {
+            price,
+            change,
+            changePct: `${changePct}%`,
+            volume,
+            volumeRatio,
+            high: high7d,
+            low: low7d,
+            high7d,
+            low7d,
+            momentum7d,
+        };
+    } catch {
+        return null;
+    }
 }
 
 async function getFearGreed() {
-  try {
-    const res = await fetch("https://api.alternative.me/fng/?limit=1");
-    const data = await res.json();
-    return {
-      value: parseInt(data.data[0].value),
-      label: data.data[0].value_classification,
-    };
-  } catch {
-    return { value: 50, label: "Neutral" };
-  }
+    try {
+        const res = await fetch("https://api.alternative.me/fng/?limit=1");
+        const data = await res.json();
+        return {
+            value: parseInt(data.data[0].value),
+            label: data.data[0].value_classification,
+        };
+    } catch {
+        return { value: 50, label: "Neutral" };
+    }
 }
 
 async function generateCryptoSignal(
-  cryptoData: Record<string, unknown>,
-  fearGreed: { value: number; label: string },
-  newsData: Record<string, unknown>[]
+    cryptoData: Record<string, unknown>,
+    fearGreed: { value: number; label: string },
+    newsData: Record<string, unknown>[]
 ) {
-  const prompt = `Tu es CLIKXIA, un copilote de décision boursière spécialisé en crypto.
+    const prompt = `Tu es CLIKXIA, un copilote de décision boursière spécialisé en crypto.
 
 Mode : WEEKEND — marchés actions fermés
 
@@ -106,70 +109,70 @@ REGLES :
 - tenir compte du Fear & Greed Index
 - tenir compte du momentum sur 7 jours`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_KEY!,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 800,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-api-key": ANTHROPIC_KEY!,
+            "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 800,
+            messages: [{ role: "user", content: prompt }],
+        }),
+    });
 
-  const data = await res.json();
-  const text = data.content?.[0]?.text || "";
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  return JSON.parse(match[0]);
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "";
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    return JSON.parse(match[0]);
 }
 
 async function getNews(query: string) {
-  try {
-    const res = await fetch(
-      `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=5&apiKey=${process.env.NEWS_API_KEY}`
-    );
-    const data = await res.json();
-    return data.articles?.map((a: { title: string; description: string }) => ({
-      title: a.title,
-      description: a.description,
-    })) || [];
-  } catch {
-    return [];
-  }
+    try {
+        const res = await fetch(
+            `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=5&apiKey=${process.env.NEWS_API_KEY}`
+        );
+        const data = await res.json();
+        return data.articles?.map((a: { title: string; description: string }) => ({
+            title: a.title,
+            description: a.description,
+        })) || [];
+    } catch {
+        return [];
+    }
 }
 
 export async function GET() {
- const cryptoSymbols = [
-  { symbol: "bitcoin", name: "Bitcoin", ticker: "BTC" },
-  { symbol: "ethereum", name: "Ethereum", ticker: "ETH" },
-  { symbol: "solana", name: "Solana", ticker: "SOL" },
-];
+    const cryptoSymbols = [
+        { symbol: "bitcoin", name: "Bitcoin", ticker: "BTC" },
+        { symbol: "ethereum", name: "Ethereum", ticker: "ETH" },
+        { symbol: "solana", name: "Solana", ticker: "SOL" },
+    ];
 
-  const fearGreed = await getFearGreed();
+    const fearGreed = await getFearGreed();
 
-  const signals = await Promise.all(
-    cryptoSymbols.map(async ({ symbol, name, ticker }) => {
-      const cryptoData = await getCryptoData(symbol);
-      if (!cryptoData) return null;
-      const news = await getNews(`${name} crypto`);
-      const signal = await generateCryptoSignal(
-        { ...cryptoData, name, ticker } as Record<string, unknown>,
+    const signals = await Promise.all(
+        cryptoSymbols.map(async ({ symbol, name, ticker }) => {
+            const cryptoData = await getCryptoData(symbol);
+            if (!cryptoData) return null;
+            const news = await getNews(`${name} crypto`);
+            const signal = await generateCryptoSignal(
+                { ...cryptoData, name, ticker } as Record<string, unknown>,
+                fearGreed,
+                news
+            );
+            if (!signal) return null;
+            return { ...cryptoData, ticker, name, ...signal };
+        })
+    );
+
+    return NextResponse.json({
+        mode: "weekend",
         fearGreed,
-        news
-      );
-      if (!signal) return null;
-      return { ...cryptoData, ticker, name, ...signal };
-    })
-  );
-
-  return NextResponse.json({
-    mode: "weekend",
-    fearGreed,
-    signals: signals.filter(Boolean),
-    updated: new Date().toISOString(),
-  });
+        signals: signals.filter(Boolean),
+        updated: new Date().toISOString(),
+    });
 }
