@@ -1,6 +1,37 @@
 "use client";
 import { useState, useEffect } from "react";
-
+const translations = {
+    fr: {
+        tagline: "COPILOTE DE DÉCISION · BOURSE",
+        headline1: "L'IA qui transforme",
+        headline2: "l'incertitude des marchés",
+        headline3: "en décision claire.",
+        subheadline: "Plus de paralysie. Plus de confusion.",
+        output: "Un seul output : BUY / SELL / WAIT — avec pourquoi.",
+        counter_text: "personnes déjà inscrites",
+        cta: "Accès prioritaire à l'ouverture — gratuit",
+        btn: "Je veux accès en priorité →",
+        success_title: "Vous êtes sur la liste !",
+        success_text: "Vous serez parmi les premiers à accéder à CLIKXIA.",
+        another: "Inscrire une autre personne →",
+        placeholder: "{t.placeholder}",
+    },
+    en: {
+        tagline: "DECISION COPILOT · MARKETS",
+        headline1: "The AI that transforms",
+        headline2: "market uncertainty",
+        headline3: "into clear decisions.",
+        subheadline: "No more paralysis. No more confusion.",
+        output: "One output: BUY / SELL / WAIT — with why.",
+        counter_text: "people already registered",
+        cta: "Priority access at launch — free",
+        btn: "I want priority access →",
+        success_title: "You're on the list!",
+        success_text: "You'll be among the first to access CLIKXIA.",
+        another: "Register another person →",
+        placeholder: "your@email.com",
+    }
+};
 export default function Home() {
     const [email, setEmail] = useState("");
     const [submitted, setSubmitted] = useState(false);
@@ -9,6 +40,8 @@ export default function Home() {
     const [count, setCount] = useState(247);
     const BASE_COUNT = 247;
     const [geo, setGeo] = useState({ country: "CA", country_name: "Canada", currency: "CAD", languages: "fr" });
+    const [lang, setLang] = useState<"fr" | "en">("fr");
+    const t = translations[lang];
 
     useEffect(() => {
         fetch("/api/waitlist")
@@ -25,6 +58,17 @@ export default function Home() {
         fetch("/api/geo")
             .then(res => res.json())
             .then(data => setGeo(data))
+            .catch(() => { });
+    }, []);
+
+    useEffect(() => {
+        fetch("/api/geo")
+            .then(res => res.json())
+            .then(data => {
+                setGeo(data);
+                const frCountries = ["FR", "CA", "BE", "CH", "LU", "SN", "CI", "CM", "MG", "ML", "BF", "NE", "TD", "GN", "BJ", "TG", "RW", "BI", "DJ", "KM", "SC", "MU", "GA", "CG", "CD", "CF", "GQ", "HT"];
+                setLang(frCountries.includes(data.country) ? "fr" : "en");
+            })
             .catch(() => { });
     }, []);
 
@@ -65,24 +109,24 @@ export default function Home() {
                     CLIK<span style={{ color: "#00E5A0" }}>XIA</span>
                 </div>
                 <div style={{ fontSize: "11px", color: "#00E5A0", letterSpacing: "2px", fontWeight: 600, marginBottom: "32px" }}>
-                    COPILOTE DE DÉCISION · BOURSE · {geo.country_name.toUpperCase()}
+                    {t.tagline} · {geo.country_name.toUpperCase()}
 
                 </div>
 
                 {/* Headline */}
                 <div style={{ fontSize: "26px", fontWeight: 800, lineHeight: 1.3, marginBottom: "12px", color: "white" }}>
-                    L'IA qui transforme<br />
-                    <span style={{ color: "#00E5A0" }}>l'incertitude des marchés</span><br />
-                    en décision claire.
+                    {t.headline1}<br />
+                    <span style={{ color: "#00E5A0" }}>{t.headline2}</span><br />
+                    {t.headline3}
                 </div>
                 <div style={{ fontSize: "14px", color: "#888", lineHeight: 1.7, marginBottom: "24px" }}>
-                    Plus de paralysie. Plus de confusion.<br />
+                    {t.subheadline}<br />
                     Un seul output : <strong style={{ color: "white" }}>BUY / SELL / WAIT</strong> — avec pourquoi.
                 </div>
 
                 {/* Counter */}
                 <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "20px", padding: "8px 20px", display: "inline-block", marginBottom: "24px", fontSize: "13px", color: "#888" }}>
-                    <span style={{ color: "#00E5A0", fontWeight: 700 }}>{count}</span> personnes déjà inscrites
+                    <span style={{ color: "#00E5A0", fontWeight: 700 }}>{count}</span> {t.counter_text}
                 </div>
 
                 {/* Demo Signal */}
@@ -137,7 +181,7 @@ export default function Home() {
                 {/* Form */}
                 {!submitted ? (
                     <div style={{ marginBottom: "16px" }}>
-                        <div style={{ fontSize: "13px", color: "#888", marginBottom: "12px" }}>Accès prioritaire à l'ouverture — gratuit</div>
+                        <div style={{ fontSize: "13px", color: "#888", marginBottom: "12px" }}>{t.cta}</div>
                         <input
                             type="email"
                             value={email}
@@ -152,19 +196,19 @@ export default function Home() {
                             disabled={loading}
                             style={{ width: "100%", background: "#00E5A0", color: "#0A0F1E", border: "none", borderRadius: "12px", padding: "14px", fontSize: "15px", fontWeight: 800, cursor: "pointer", opacity: loading ? 0.7 : 1 }}
                         >
-                            {loading ? "Inscription..." : "Je veux accès en priorité →"}
+                            {loading ? "Inscription..." : "{t.btn}"}
                         </button>
                     </div>
                 ) : (
                     <div style={{ background: "rgba(0,229,160,0.08)", border: "1px solid rgba(0,229,160,0.2)", borderRadius: "12px", padding: "20px", marginBottom: "16px" }}>
                         <div style={{ fontSize: "32px", marginBottom: "8px" }}>🎯</div>
-                        <div style={{ fontSize: "18px", fontWeight: 800, color: "#00E5A0", marginBottom: "4px" }}>Vous êtes sur la liste !</div>
-                        <div style={{ fontSize: "13px", color: "#888" }}>Vous serez parmi les premiers à accéder à CLIKXIA. On vous contacte dès l'ouverture.</div>
+                        <div style={{ fontSize: "18px", fontWeight: 800, color: "#00E5A0", marginBottom: "4px" }}>{t.success_title}</div>
+                        <div style={{ fontSize: "13px", color: "#888" }}>{t.success_text} On vous contacte dès l'ouverture.</div>
                         <button
                             onClick={() => { setSubmitted(false); setEmail(""); setError(""); }}
                             style={{ marginTop: "12px", background: "none", border: "1px solid rgba(0,229,160,0.3)", color: "#00E5A0", borderRadius: "20px", padding: "8px 16px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}
                         >
-                            Inscrire une autre personne →
+                            {t.another}
                         </button>
                     </div>
                 )}
