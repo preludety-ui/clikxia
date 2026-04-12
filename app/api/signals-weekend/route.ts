@@ -128,8 +128,16 @@ REGLES :
     const data = await res.json();
     const text = data.content?.[0]?.text || "";
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
+    if (!match) {
+  console.log("No JSON match in Claude response:", text.slice(0, 200));
+  return null;
+}
+try {
+  return JSON.parse(match[0]);
+} catch (e) {
+  console.log("JSON parse error:", e);
+  return null;
+}
 }
 
 async function getNews(query: string) {
