@@ -4,19 +4,35 @@ const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
 async function getStockData(ticker: string) {
   try {
-    const res = await fetch(
-      `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_API_KEY}`
-    );
-    const data = await res.json();
-    if (!data || data.c === 0) return null;
+    const now = Math.floor(Date.now() / 1000);
+    const yesterday = now - 86400;
+
+    const [quoteRes, candleRes] = await Promise.all([
+      fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_API_KEY}`),
+      fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${yesterday}&to=${now}&token=${process.env.FINNHUB_API_KEY}`)
+    ]);
+
+    const quote = await quoteRes.json();
+    const candle = await candleRes.json();
+
+    if (!quote || quote.c === 0) return null;
+
+    const volume = candle?.v?.[0] || 0;
+    const avgVolume = candle?.v?.length > 1 
+      ? candle.v.reduce((a: number, b: number) => a + b, 0) / candle.v.length 
+      : volume;
+    const volumeRatio = avgVolume > 0 ? (volume / avgVolume).toFixed(2) : "N/A";
+
     return {
       ticker,
-      price: data.c,
-      change: data.d,
-      changePct: `${data.dp?.toFixed(2)}%`,
-      volume: 0,
-      high: data.h,
-      low: data.l,
+      price: quote.c,
+      change: quote.d,
+      changePct: `${quote.dp?.toFixed(2)}%`,
+      volume,
+      volumeRatio,
+      high: quote.h,
+      low: quote.l,
+      prevClose: quote.pc,
     };
   } catch {
     return null;
