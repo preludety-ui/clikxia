@@ -196,7 +196,7 @@ export default function Home() {
                             disabled={loading}
                             style={{ width: "100%", background: "#00E5A0", color: "#0A0F1E", border: "none", borderRadius: "12px", padding: "14px", fontSize: "15px", fontWeight: 800, cursor: "pointer", opacity: loading ? 0.7 : 1 }}
                         >
-                            {loading ? "Inscription..." : "{t.btn}"}
+                            {loading ? (lang === "fr" ? "Inscription..." : "Registering...") : t.btn}
                         </button>
                     </div>
                 ) : (
