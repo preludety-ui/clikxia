@@ -6,13 +6,12 @@ const FINNHUB_KEY = process.env.FINNHUB_API_KEY;
 async function getCryptoData(coinId: string) {
     try {
 
-       console.log("Fetching CoinGecko for:", coinId);
-const res = await fetch(
+       const res = await fetch(
   `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=7&interval=daily`
 );
-console.log("CoinGecko status:", res.status);
+
 const data = await res.json();
-console.log("CoinGecko data keys:", Object.keys(data));
+
 
         if (!data?.prices || data.prices.length === 0) return null;
 
@@ -127,15 +126,16 @@ REGLES :
 
     const data = await res.json();
     const text = data.content?.[0]?.text || "";
+  
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) {
-  console.log("No JSON match in Claude response:", text.slice(0, 200));
+  
   return null;
 }
 try {
   return JSON.parse(match[0]);
 } catch (e) {
-  console.log("JSON parse error:", e);
+  
   return null;
 }
 }
