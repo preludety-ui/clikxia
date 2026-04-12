@@ -5,25 +5,18 @@ const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 async function getStockData(ticker: string) {
   try {
     const res = await fetch(
-      `https://yahoo-finance15.p.rapidapi.com/api/v1/markets/quote?ticker=${ticker}&type=STOCKS`,
-      {
-        headers: {
-          "X-RapidAPI-Key": process.env.RAPIDAPI_KEY!,
-          "X-RapidAPI-Host": "yahoo-finance15.p.rapidapi.com",
-        },
-      }
+      `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_API_KEY}`
     );
     const data = await res.json();
-    const quote = data?.body;
-    if (!quote) return null;
+    if (!data || data.c === 0) return null;
     return {
       ticker,
-      price: parseFloat(quote.regularMarketPrice || 0),
-      change: parseFloat(quote.regularMarketChange || 0),
-      changePct: `${parseFloat(quote.regularMarketChangePercent || 0).toFixed(2)}%`,
-      volume: parseInt(quote.regularMarketVolume || 0),
-      high: parseFloat(quote.regularMarketDayHigh || 0),
-      low: parseFloat(quote.regularMarketDayLow || 0),
+      price: data.c,
+      change: data.d,
+      changePct: `${data.dp?.toFixed(2)}%`,
+      volume: 0,
+      high: data.h,
+      low: data.l,
     };
   } catch {
     return null;
