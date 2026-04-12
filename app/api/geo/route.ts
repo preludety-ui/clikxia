@@ -1,28 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") || 
-             req.headers.get("x-real-ip") || 
-             "unknown";
+const countryNames: Record<string, string> = {
+  CA: "Canada", US: "United States", FR: "France", BE: "Belgium",
+  CH: "Switzerland", GB: "United Kingdom", DE: "Germany", IT: "Italy",
+  ES: "Spain", NL: "Netherlands", PT: "Portugal", AU: "Australia",
+  JP: "Japan", CN: "China", BR: "Brazil", MX: "Mexico",
+  SN: "Sénégal", CI: "Côte d'Ivoire", CM: "Cameroun", MG: "Madagascar",
+  HT: "Haïti", MA: "Maroc", TN: "Tunisie", DZ: "Algérie",
+};
 
-  try {
-    const res = await fetch(`https://ipapi.co/${ip}/json/`);
-    const data = await res.json();
-    
-    return NextResponse.json({
-      country: data.country_code || "US",
-      country_name: data.country_name || "United States",
-      currency: data.currency || "USD",
-      languages: data.languages || "en",
-      timezone: data.timezone || "UTC",
-    });
-  } catch {
-    return NextResponse.json({
-      country: "US",
-      country_name: "United States", 
-      currency: "USD",
-      languages: "en",
-      timezone: "UTC",
-    });
-  }
+const currencyMap: Record<string, string> = {
+  CA: "CAD", US: "USD", FR: "EUR", BE: "EUR", CH: "CHF",
+  GB: "GBP", DE: "EUR", IT: "EUR", ES: "EUR", NL: "EUR",
+  JP: "JPY", AU: "AUD", BR: "BRL", MX: "MXN",
+};
+
+export async function GET(req: NextRequest) {
+  const country = req.headers.get("x-vercel-ip-country") || "CA";
+  
+  return NextResponse.json({
+    country,
+    country_name: countryNames[country] || country,
+    currency: currencyMap[country] || "USD",
+    languages: ["FR", "CA", "BE", "CH", "SN", "CI", "CM", "MG", "HT", "MA", "TN", "DZ"].includes(country) ? "fr" : "en",
+  });
 }
