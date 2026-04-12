@@ -8,6 +8,7 @@ export default function Home() {
     const [error, setError] = useState("");
     const [count, setCount] = useState(247);
     const BASE_COUNT = 247;
+    const [geo, setGeo] = useState({ country: "CA", country_name: "Canada", currency: "CAD", languages: "fr" });
 
     useEffect(() => {
         fetch("/api/waitlist")
@@ -17,6 +18,13 @@ export default function Home() {
                     setCount(BASE_COUNT + data.count);
                 }
             })
+            .catch(() => { });
+    }, []);
+
+    useEffect(() => {
+        fetch("/api/geo")
+            .then(res => res.json())
+            .then(data => setGeo(data))
             .catch(() => { });
     }, []);
 
@@ -57,7 +65,8 @@ export default function Home() {
                     CLIK<span style={{ color: "#00E5A0" }}>XIA</span>
                 </div>
                 <div style={{ fontSize: "11px", color: "#00E5A0", letterSpacing: "2px", fontWeight: 600, marginBottom: "32px" }}>
-                    COPILOTE DE DÉCISION · BOURSE
+                    COPILOTE DE DÉCISION · BOURSE · {geo.country_name.toUpperCase()}
+
                 </div>
 
                 {/* Headline */}
