@@ -5,28 +5,29 @@ const FINNHUB_KEY = process.env.FINNHUB_API_KEY;
 
 async function getCryptoData(symbol: string) {
   try {
+    const now = Math.floor(Date.now() / 1000);
+    const sevenDaysAgo = now - (7 * 86400);
+
     const res = await fetch(
-      `https://finnhub.io/api/v1/crypto/candle?symbol=${symbol}&resolution=D&count=7&token=${FINNHUB_KEY}`
+      `https://finnhub.io/api/v1/crypto/candle?symbol=${symbol}&resolution=D&from=${sevenDaysAgo}&to=${now}&token=${FINNHUB_KEY}`
     );
     const data = await res.json();
-    if (!data || data.s === "no_data") return null;
+    
+    if (!data || data.s !== "ok" || !data.c || data.c.length === 0) return null;
 
     const lastIndex = data.c.length - 1;
     const price = data.c[lastIndex];
-    const prevPrice = data.c[lastIndex - 1];
+    const prevPrice = data.c[lastIndex - 1] || data.c[0];
     const change = price - prevPrice;
     const changePct = ((change / prevPrice) * 100).toFixed(2);
     const volume = data.v[lastIndex];
     const avgVolume = data.v.reduce((a: number, b: number) => a + b, 0) / data.v.length;
     const volumeRatio = (volume / avgVolume).toFixed(2);
-
-    const prices = data.c;
-    const high7d = Math.max(...prices);
-    const low7d = Math.min(...prices);
-    const momentum7d = ((prices[lastIndex] - prices[0]) / prices[0] * 100).toFixed(2);
+    const high7d = Math.max(...data.c);
+    const low7d = Math.min(...data.c);
+    const momentum7d = ((price - data.c[0]) / data.c[0] * 100).toFixed(2);
 
     return {
-      ticker: symbol.replace("BINANCE:", "").replace("USDUSDT", "USD"),
       price,
       change,
       changePct: `${changePct}%`,
@@ -145,10 +146,10 @@ async function getNews(query: string) {
 
 export async function GET() {
   const cryptoSymbols = [
-    { symbol: "BINANCE:BTCUSDT", name: "Bitcoin", ticker: "BTC" },
-    { symbol: "BINANCE:ETHUSDT", name: "Ethereum", ticker: "ETH" },
-    { symbol: "BINANCE:SOLUSDT", name: "Solana", ticker: "SOL" },
-  ];
+  { symbol: "BINANCE:BTC_USDT", name: "Bitcoin", ticker: "BTC" },
+  { symbol: "BINANCE:ETH_USDT", name: "Ethereum", ticker: "ETH" },
+  { symbol: "BINANCE:SOL_USDT", name: "Solana", ticker: "SOL" },
+];
 
   const fearGreed = await getFearGreed();
 
