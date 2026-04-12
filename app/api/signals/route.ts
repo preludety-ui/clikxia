@@ -1,24 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ALPHA_VANTAGE_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
 async function getStockData(ticker: string) {
   try {
     const res = await fetch(
-      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${ALPHA_VANTAGE_KEY}`
+      `https://yahoo-finance15.p.rapidapi.com/api/v1/markets/quote?ticker=${ticker}&type=STOCKS`,
+      {
+        headers: {
+          "X-RapidAPI-Key": process.env.RAPIDAPI_KEY!,
+          "X-RapidAPI-Host": "yahoo-finance15.p.rapidapi.com",
+        },
+      }
     );
     const data = await res.json();
-    const quote = data["Global Quote"];
+    const quote = data?.body;
     if (!quote) return null;
     return {
       ticker,
-      price: parseFloat(quote["05. price"]),
-      change: parseFloat(quote["09. change"]),
-      changePct: quote["10. change percent"],
-      volume: parseInt(quote["06. volume"]),
-      high: parseFloat(quote["03. high"]),
-      low: parseFloat(quote["04. low"]),
+      price: parseFloat(quote.regularMarketPrice || 0),
+      change: parseFloat(quote.regularMarketChange || 0),
+      changePct: `${parseFloat(quote.regularMarketChangePercent || 0).toFixed(2)}%`,
+      volume: parseInt(quote.regularMarketVolume || 0),
+      high: parseFloat(quote.regularMarketDayHigh || 0),
+      low: parseFloat(quote.regularMarketDayLow || 0),
     };
   } catch {
     return null;
@@ -105,7 +110,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const country = searchParams.get("country") || "CA";
 
-  const tickers = country === "CA" 
+  const tickers = country === "CA"
     ? ["SHOP", "CNR", "RY", "TD", "ENB"]
     : country === "FR" || country === "BE" || country === "CH"
     ? ["ASML", "LVMH.PA", "SAP", "NESN.SW", "SIE.DE"]
