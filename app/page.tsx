@@ -3,26 +3,26 @@ import { useState, useEffect } from "react";
 const translations = {
     fr: {
         tagline: "COPILOTE DE DÉCISION · BOURSE",
-        headline1: "L'IA qui transforme",
-        headline2: "l'incertitude des marchés",
-        headline3: "en décision claire.",
-        subheadline: "Plus de paralysie. Plus de confusion.",
-        output: "Un seul output : BUY / SELL / WAIT — avec pourquoi.",
+        headline1: "Les marchés bougent sur les données",
+        headline2: "ET le comportement humain.",
+        headline3: "La plupart des outils ne lisent qu'un seul. CLIKXIA lit les deux.",
+        subheadline: "Le résultat ? Un signal clair :",
+        output: "BUY / SELL / WAIT — votre décision. Toujours.",
         counter_text: "personnes déjà inscrites",
         cta: "Accès prioritaire à l'ouverture — gratuit",
         btn: "Je veux accès en priorité →",
         success_title: "Vous êtes sur la liste !",
         success_text: "Vous serez parmi les premiers à accéder à CLIKXIA.",
         another: "Inscrire une autre personne →",
-        placeholder: "{t.placeholder}",
+        placeholder: "votre@email.com",
     },
     en: {
         tagline: "DECISION COPILOT · MARKETS",
-        headline1: "The AI that transforms",
-        headline2: "market uncertainty",
-        headline3: "into clear decisions.",
-        subheadline: "No more paralysis. No more confusion.",
-        output: "One output: BUY / SELL / WAIT — with why.",
+        headline1: "Markets move on data",
+        headline2: "AND human behavior.",
+        headline3: "Most tools only read one. CLIKXIA reads both.",
+        subheadline: "The result? One clear signal :",
+        output: "BUY / SELL / WAIT — your decision. Always.",
         counter_text: "people already registered",
         cta: "Priority access at launch — free",
         btn: "I want priority access →",
@@ -31,6 +31,7 @@ const translations = {
         another: "Register another person →",
         placeholder: "your@email.com",
     }
+
 };
 export default function Home() {
     const [email, setEmail] = useState("");
@@ -121,9 +122,8 @@ export default function Home() {
                 </div>
                 <div style={{ fontSize: "14px", color: "#888", lineHeight: 1.7, marginBottom: "24px" }}>
                     {t.subheadline}<br />
-                    Un seul output : <strong style={{ color: "white" }}>BUY / SELL / WAIT</strong> — avec pourquoi.
+                    <strong style={{ color: "white" }}>{t.output}</strong>
                 </div>
-
                 {/* Counter */}
                 <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "20px", padding: "8px 20px", display: "inline-block", marginBottom: "24px", fontSize: "13px", color: "#888" }}>
                     <span style={{ color: "#00E5A0", fontWeight: 700 }}>{count}</span> {t.counter_text}
