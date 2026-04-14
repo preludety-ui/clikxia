@@ -3,9 +3,9 @@ import { useState, useEffect } from "react";
 const translations = {
     fr: {
         tagline: "COPILOTE DE DÉCISION · BOURSE",
-        headline1: "Les marchés bougent sur les données",
+        headline1: "Les marchés évoluent selon les données",
         headline2: "ET le comportement humain.",
-        headline3: "La plupart des outils ne lisent qu'un seul. CLIKXIA lit les deux.",
+        headline3: "La plupart des outils n'analysent qu'un seul de ces facteurs. CLIKXIA analyse les deux.",
         subheadline: "Le résultat ? Un signal clair :",
         output: "BUY / SELL / WAIT — votre décision. Toujours.",
         counter_text: "personnes déjà inscrites",
@@ -18,9 +18,9 @@ const translations = {
     },
     en: {
         tagline: "DECISION COPILOT · MARKETS",
-        headline1: "Markets move on data",
+        headline1: "Markets are driven by data",
         headline2: "AND human behavior.",
-        headline3: "Most tools only read one. CLIKXIA reads both.",
+        headline3: "Most tools only analyze one. CLIKXIA analyzes both.",
         subheadline: "The result? One clear signal :",
         output: "BUY / SELL / WAIT — your decision. Always.",
         counter_text: "people already registered",
