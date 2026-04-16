@@ -1,119 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
-
-async function getStockData(ticker: string) {
-  try {
-    const now = Math.floor(Date.now() / 1000);
-    const yesterday = now - 86400;
-
-    const [quoteRes, candleRes] = await Promise.all([
-      fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_API_KEY}`),
-      fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${yesterday}&to=${now}&token=${process.env.FINNHUB_API_KEY}`)
-    ]);
-
-    const quote = await quoteRes.json();
-    const candle = await candleRes.json();
-
-    if (!quote || quote.c === 0) return null;
-
-    const volume = candle?.v?.[0] || 0;
-    const avgVolume = candle?.v?.length > 1 
-      ? candle.v.reduce((a: number, b: number) => a + b, 0) / candle.v.length 
-      : volume;
-    const volumeRatio = avgVolume > 0 ? (volume / avgVolume).toFixed(2) : "N/A";
-
-    return {
-      ticker,
-      price: quote.c,
-      change: quote.d,
-      changePct: `${quote.dp?.toFixed(2)}%`,
-      volume,
-      volumeRatio,
-      high: quote.h,
-      low: quote.l,
-      prevClose: quote.pc,
-    };
-  } catch {
-    return null;
-  }
-}
-
-async function getNews(ticker: string) {
-  try {
-    const res = await fetch(
-      `https://newsapi.org/v2/everything?q=${ticker}&language=en&sortBy=publishedAt&pageSize=5&apiKey=${process.env.NEWS_API_KEY}`
-    );
-    const data = await res.json();
-    return data.articles?.map((a: { title: string; description: string; publishedAt: string }) => ({
-      title: a.title,
-      description: a.description,
-      publishedAt: a.publishedAt,
-    })) || [];
-  } catch {
-    return [];
-  }
-}
-
-async function generateSignal(stockData: Record<string, unknown>, news: Record<string, unknown>[]) {
-  const prompt = `Tu es CLIKXIA, un copilote de décision boursière.
-
-Analyse ces données et génère un signal de trading. Retourne UNIQUEMENT ce JSON valide :
-
-Données techniques :
-${JSON.stringify(stockData)}
-
-Actualités récentes :
-${JSON.stringify(news.slice(0, 3))}
-
-{
-  "decision": "BUY ou SELL ou WAIT",
-  "confidence": 75,
-  "score": 78,
-  "signal_quality": "FORT ou MODÉRÉ ou FAIBLE",
-  "timing": "Entrer maintenant ou Attendre pullback ou Surveiller ou Sortir maintenant",
-  "entry_low": 88,
-  "entry_high": 90,
-  "target_low": 96,
-  "target_high": 100,
-  "stop_loss": 85,
-  "horizon": "5-10 jours",
-  "scenario_up": 60,
-  "scenario_down": 25,
-  "scenario_flat": 15,
-  "reasons": ["raison 1", "raison 2", "raison 3"],
-  "score_technique": 80,
-  "score_news": 75,
-  "score_psychologie": 70,
-  "score_devises": 65
-}
-
-RÈGLES :
-- decision basée sur toutes les données
-- confidence entre 50 et 90
-- scenario_up + scenario_down + scenario_flat = 100
-- reasons en français, courtes et précises`;
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_KEY!,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 800,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  const data = await res.json();
-  const text = data.content?.[0]?.text || "";
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  return JSON.parse(match[0]);
-}
+const ENGINE_URL = process.env.CLIKXIA_ENGINE_URL || "https://clikxia-engine-production.up.railway.app";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -122,22 +9,36 @@ export async function GET(req: NextRequest) {
   const tickers = country === "CA"
     ? ["SHOP", "CNR", "RY", "TD", "ENB"]
     : country === "FR" || country === "BE" || country === "CH"
-    ? ["ASML", "LVMH.PA", "SAP", "NESN.SW", "SIE.DE"]
+    ? ["ASML", "SAP", "SIE", "NESN", "OR"]
     : ["AAPL", "NVDA", "MSFT", "AMZN", "GOOGL"];
 
-  const signals = await Promise.all(
-    tickers.map(async (ticker) => {
-      const stockData = await getStockData(ticker);
-      if (!stockData) return null;
-      const news = await getNews(ticker);
-      const signal = await generateSignal(stockData as Record<string, unknown>, news);
-      if (!signal) return null;
-      return { ...stockData, ...signal };
-    })
-  );
+  try {
+    const signals = await Promise.all(
+      tickers.map(async (ticker) => {
+        try {
+          const res = await fetch(`${ENGINE_URL}/analyze/${ticker}`, {
+            next: { revalidate: 900 }
+          });
+          if (!res.ok) return null;
+          const data = await res.json();
+          if (data.error) return null;
+          return data;
+        } catch {
+          return null;
+        }
+      })
+    );
 
-  return NextResponse.json({
-    signals: signals.filter(Boolean),
-    updated: new Date().toISOString(),
-  });
+    return NextResponse.json({
+      signals: signals.filter(Boolean),
+      updated: new Date().toISOString(),
+      source: "clikxia-engine-v2"
+    });
+
+  } catch {
+    return NextResponse.json(
+      { error: "Engine unavailable" },
+      { status: 500 }
+    );
+  }
 }
