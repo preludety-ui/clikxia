@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const country = searchParams.get("country") || "CA";
 
   const tickers = country === "CA"
-    ? ["SHOP", "CNR", "RY", "TD", "ENB"]
+    ? ["SHOP", "RY.TO", "TD.TO", "CNR.TO", "ENB.TO"]
     : country === "FR" || country === "BE" || country === "CH"
     ? ["ASML", "SAP", "SIE", "NESN", "OR"]
     : ["AAPL", "NVDA", "MSFT", "AMZN", "GOOGL"];
