@@ -3,6 +3,28 @@ import { NextResponse } from "next/server";
 const ENGINE_URL = process.env.CLIKXIA_ENGINE_URL ||
   "https://clikxia-engine-production.up.railway.app";
 
+function enrichConfidence(o: any) {
+  return {
+    ...o,
+    confidence: typeof o.confidence === "number" ? {
+      global: o.confidence,
+      model: {
+        score: o.model_confidence || 0,
+        label: (o.model_confidence || 0) > 0.7 ? "strong"
+             : (o.model_confidence || 0) > 0.5 ? "moderate" : "weak"
+      },
+      stat: {
+        score: o.stat_confidence || 0,
+        label: (o.stat_confidence || 0) > 0.7 ? "stable"
+             : (o.stat_confidence || 0) > 0.5 ? "moderate" : "limited"
+      },
+      limiting_factor: o.confidence_limiting_factor || "—",
+      label_hero: `Model: ${(o.model_confidence || 0) > 0.7 ? "strong" : (o.model_confidence || 0) > 0.5 ? "moderate" : "weak"} · Stats: ${(o.stat_confidence || 0) > 0.7 ? "stable" : (o.stat_confidence || 0) > 0.5 ? "moderate" : "limited"}`,
+      drivers: o.confidence_drivers || []
+    } : o.confidence
+  };
+}
+
 export async function GET() {
   try {
     const res = await fetch(`${ENGINE_URL}/scan/latest`, {
@@ -10,7 +32,10 @@ export async function GET() {
     });
     const data = await res.json();
 
-    const opportunities = data.opportunities || [];
+    const raw = data.opportunities || [];
+
+    // Enrichir confidence pour tous
+    const opportunities = raw.map(enrichConfidence);
 
     // Signals = valides seulement
     const signals = opportunities
@@ -20,7 +45,7 @@ export async function GET() {
       );
 
     // Radar = tous, triés par anomaly_score
-    const radar = opportunities
+    const radar = [...opportunities]
       .sort((a: any, b: any) =>
         (b.anomaly_score || 0) - (a.anomaly_score || 0)
       );
@@ -51,7 +76,7 @@ export async function GET() {
       })
     );
 
-    // Early feed — radar non valides triés par impact
+    // Early feed
     const early_feed = opportunities
       .filter((o: any) => !o.is_valid_signal)
       .map((o: any) => ({
@@ -77,11 +102,8 @@ export async function GET() {
     // Meta
     const latest = opportunities[0];
     const regime = latest?.regime || "neutral";
-    const fear_greed = { value: 26, label: "Fear" };
-    const market_volatility =
-      latest?.baseline?.volatility_20d || 0.04;
-    const no_trade_threshold =
-      latest?.no_trade_threshold || 0.02;
+    const market_volatility = latest?.baseline?.volatility_20d || 0.04;
+    const no_trade_threshold = latest?.no_trade_threshold || 0.02;
 
     const market_state =
       signals.length > 0
@@ -99,7 +121,7 @@ export async function GET() {
       },
       meta: {
         regime,
-        fear_greed,
+        fear_greed: { value: 26, label: "Fear" },
         last_scan: latest?.updated_at || "",
         global_track_record: {
           return_30d: 0.042,
