@@ -63,6 +63,7 @@ const SIGNAL_COLORS = {
   BUY: "#00E5A0",
   SELL: "#FF4560",
   WAIT: "#F59E0B",
+  WATCH: "#60A5FA",
 };
 
 const CLUSTER_ICONS: Record<string, string> = {
@@ -644,9 +645,19 @@ export default function Dashboard() {
         </div>
       ) : tab === "signals" ? (
         <div style={{ paddingTop: "12px" }}>
-          {signals.length === 0 ? (
-            meta && <DegradedMode meta={meta} />
-          ) : (
+          {signals.length === 0 && radar.length === 0 ? (
+    meta && <DegradedMode meta={meta} />
+) : signals.length === 0 ? (
+    <>
+        <DegradedMode meta={meta!} />
+        <div style={{ padding: "0 16px 8px", fontSize: "9px", color: "#444", letterSpacing: "1px", marginTop: "16px" }}>
+            EN SURVEILLANCE — PAS ENCORE ACTIONNABLES
+        </div>
+        {radar.slice(0, 3).map(o => (
+            <SignalCard key={o.symbol} opp={{...o, signal_stable: "WATCH"}} onExpand={() => setDrawer(o)} />
+        ))}
+    </>
+) : (
             <>
               <HeroSignalCard opp={signals[0]} onExpand={() => setDrawer(signals[0])} />
               {signals.slice(1).map(s => (
