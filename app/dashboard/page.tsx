@@ -95,6 +95,7 @@ function timeAgo(iso: string): string {
 }
 
 function evDisplay(ev: number): string {
+  if (ev === undefined || ev === null) return "—";
   const pct = (ev * 100).toFixed(1);
   return ev >= 0 ? `+${pct}%` : `${pct}%`;
 }
@@ -561,6 +562,7 @@ function EarlyFeedItem({ opp }: { opp: Opportunity }) {
   const impact = opp.impact_level || "LOW";
   const ic = IMPACT_COLORS[impact] || "#888";
   const traj = opp.trajectory;
+  const freshness = opp.signal_freshness || {};
 
   return (
     <div style={{
@@ -573,18 +575,19 @@ function EarlyFeedItem({ opp }: { opp: Opportunity }) {
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ fontSize: "10px", fontWeight: 700, color: ic }}>{impact}</span>
+          <span style={{ fontSize: "10px", fontWeight: 700, color: ic }}>
+            {impact === "HIGH" ? "🔥" : impact === "MEDIUM" ? "⚠️" : "ℹ️"} {impact}
+          </span>
           <span style={{ fontSize: "13px", fontWeight: 800, fontFamily: "monospace" }}>{opp.symbol}</span>
         </div>
         <span style={{ fontSize: "10px", color: "#555" }}>
-          {opp.signal_freshness?.strength_label || "—"}
+          Freshness: {freshness.strength_label || "—"}
         </span>
       </div>
 
       {traj && traj.ev?.length > 1 && (
         <div style={{ fontSize: "10px", color: traj.trend === "rising" ? "#00E5A0" : traj.trend === "falling" ? "#FF4560" : "#888", marginBottom: "4px" }}>
-          📈 EV: {traj.ev.map((v: number) => `${(v * 100).toFixed(1)}%`).join(" → ")}
-          {" "}({traj.trend})
+          {traj.trend === "rising" ? "📈" : traj.trend === "falling" ? "📉" : "➡️"} EV: {traj.ev.map((v: number) => `${(v * 100).toFixed(1)}%`).join(" → ")} ({traj.trend})
         </div>
       )}
 
