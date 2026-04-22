@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";  // ← AJOUTER CETTE LIGNE
 const translations = {
     fr: {
         tagline: "COPILOTE DE DÉCISION · BOURSE",
@@ -215,6 +216,10 @@ export default function Home() {
 
                 <div style={{ fontSize: "10px", color: "#333", marginTop: "16px" }}>
                     CLIKXIA est un outil d'aide à la décision. Tout investissement comporte des risques.<br />
+                    <Link href="/methode" style={{ color: "#00E5A0", textDecoration: "none", fontWeight: 600 }}>
+                        {lang === "fr" ? "Notre méthode" : "Our method"}
+                    </Link>
+                    {" · "}
                     © 2026 CLIKXIA · clikxia.com · clikxia.ca
                 </div>
 

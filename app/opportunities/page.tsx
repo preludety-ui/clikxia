@@ -66,8 +66,7 @@ export default function Opportunities() {
     const loadAnomalies = async (c: string) => {
         setLoading(true);
         try {
-            const ENGINE = "https://clikxia-engine-production.up.railway.app";
-            const res = await fetch(`${ENGINE}/scan`);
+            const res = await fetch(`/api/anomalies?country=${c}`);
             const data = await res.json();
             setAnomalies(data.anomalies || []);
             setUpdated(new Date().toLocaleTimeString());
