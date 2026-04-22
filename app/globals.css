@@ -1,10 +1,209 @@
+/* ============================================================
+   CLIKXIA Design System v1.0
+   Basé sur recherche UX fintech 2024-2026
+   ============================================================ */
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+:root {
+  /* ========== BRAND - trust institutionnelle ========== */
+  --brand-900: #0B1F3A;
+  --brand-700: #1A365D;
+  --brand-500: #3182CE;
+  --brand-50:  #EBF4FF;
+
+  /* ========== SÉMANTIQUE - décisions d'investissement ========== */
+  --success-700: #276749;
+  --success-500: #38A169;
+  --success-50:  #F0FDF4;
+
+  --warning-700: #975A16;
+  --warning-500: #D69E2E;
+  --warning-50:  #FFFBEB;
+
+  --danger-700: #9B2C2C;
+  --danger-500: #E53E3E;
+  --danger-50:  #FEF2F2;
+
+  /* ========== NEUTRES - texte et structure ========== */
+  --ink-900: #0F1724;
+  --ink-700: #334155;
+  --ink-500: #64748B;
+  --ink-300: #CBD5E1;
+  --ink-100: #E2E8F0;
+  --ink-50:  #F1F5F9;
+
+  --surface:    #FFFFFF;
+  --background: #FAFBFC;
+
+  /* ========== OMBRES - soft, pas flat ========== */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 36, 0.04);
+  --shadow-md: 0 2px 8px rgba(15, 23, 36, 0.06);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 36, 0.08);
+
+  /* ========== RAYONS - soft ========== */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+}
+
+/* ========== BODY - reste dark pour la landing ========== */
 body {
   background: #0A0F1E;
   color: white;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   DASHBOARD SCOPE - light theme pour le dashboard CLIKXIA
+   Usage : <div className="clikxia-app">...</div>
+   ============================================================ */
+
+.clikxia-app {
+  background: var(--background);
+  color: var(--ink-900);
+  font-family: var(--font-body), system-ui, sans-serif;
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   TYPOGRAPHIE - classes utilitaires
+   ============================================================ */
+
+.display-hero {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 64px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.display-xl {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 48px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.display-lg {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.display-md {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.body-xl {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.body-lg {
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.body-md {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.body-sm {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.number-lg {
+  font-family: var(--font-mono), monospace;
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.mono {
+  font-family: var(--font-mono), monospace;
+}
+
+/* ============================================================
+   RECOMMENDATION BADGES - les 5 niveaux
+   ============================================================ */
+
+.reco-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-family: var(--font-body), sans-serif;
+  white-space: nowrap;
+}
+
+.reco-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: currentColor;
+}
+
+.reco-strong-buy  { background: var(--success-500); color: white; }
+.reco-buy         { background: var(--success-50); color: var(--success-700); border: 1px solid rgba(56, 161, 105, 0.25); }
+.reco-hold        { background: var(--warning-50); color: var(--warning-700); border: 1px solid rgba(214, 158, 46, 0.25); }
+.reco-sell        { background: var(--danger-50); color: var(--danger-700); border: 1px solid rgba(229, 62, 62, 0.25); }
+.reco-strong-sell { background: var(--danger-500); color: white; }
+
+/* ============================================================
+   UTILITAIRES
+   ============================================================ */
+
+.stock-change-pos { color: var(--success-700); }
+.stock-change-neg { color: var(--danger-700); }
+
+.text-ink-900 { color: var(--ink-900); }
+.text-ink-700 { color: var(--ink-700); }
+.text-ink-500 { color: var(--ink-500); }
+
+/* Reset button */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Reset link */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Reset input */
+input {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: transparent;
 }
