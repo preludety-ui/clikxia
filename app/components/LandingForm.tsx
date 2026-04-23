@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { t, type Lang } from "@/lib/i18n";
 
-export default function LandingForm() {
+interface Props {
+  lang: Lang;
+}
+
+export default function LandingForm({ lang }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
@@ -19,12 +24,11 @@ export default function LandingForm() {
     setInfo("");
 
     if (!email || !email.includes("@") || email.length < 5) {
-      setError("Entrez un email valide");
+      setError(t(lang, "error_email_invalid"));
       return;
     }
 
     setSubmitting(true);
-
     try {
       const res = await fetch("/api/waitlist", {
         method: "POST",
@@ -33,22 +37,20 @@ export default function LandingForm() {
       });
 
       const data = await res.json();
-
       if (res.ok && data.success) {
-        // Cookie pose cote serveur, redirection vers le dashboard
         if (data.already_registered) {
-          setInfo("Email deja inscrit. Redirection...");
+          setInfo(t(lang, "already_registered"));
         }
         setTimeout(() => {
           router.push(redirectTo);
           router.refresh();
         }, 600);
       } else {
-        setError(data.error || "Une erreur est survenue");
+        setError(data.error || t(lang, "error_generic"));
         setSubmitting(false);
       }
     } catch {
-      setError("Erreur de connexion, reessayez");
+      setError(t(lang, "error_connection"));
       setSubmitting(false);
     }
   }
@@ -83,13 +85,8 @@ export default function LandingForm() {
           outline: none;
           transition: border-color 0.15s;
         }
-        .landing-input:focus {
-          border-color: #1a1917;
-        }
-        .landing-input:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+        .landing-input:focus { border-color: #1a1917; }
+        .landing-input:disabled { opacity: 0.6; cursor: not-allowed; }
         .landing-button {
           padding: 14px 20px;
           background: #1a1917;
@@ -104,13 +101,8 @@ export default function LandingForm() {
           font-family: var(--font-mono, monospace);
           white-space: nowrap;
         }
-        .landing-button:hover:not(:disabled) {
-          opacity: 0.9;
-        }
-        .landing-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+        .landing-button:hover:not(:disabled) { opacity: 0.9; }
+        .landing-button:disabled { opacity: 0.5; cursor: not-allowed; }
         .landing-error {
           margin-top: 12px;
           padding: 10px 12px;
@@ -143,13 +135,13 @@ export default function LandingForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="votre@email.com"
+          placeholder={t(lang, "email_placeholder")}
           required
           disabled={submitting}
           className="landing-input"
         />
         <button type="submit" disabled={submitting} className="landing-button">
-          {submitting ? "..." : "Acceder gratuitement"}
+          {submitting ? t(lang, "cta_access_loading") : t(lang, "cta_access")}
         </button>
       </div>
 
@@ -157,7 +149,7 @@ export default function LandingForm() {
       {info && <div className="landing-info">{info}</div>}
 
       <div className="landing-note">
-        Acces immediat apres soumission. Pas de spam.
+        {t(lang, "note_signup")}
       </div>
     </form>
   );

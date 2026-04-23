@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getTop5 } from "@/lib/api";
+import { detectLang } from "@/lib/lang";
+import { t } from "@/lib/i18n";
 import SiteHeader from "@/app/components/SiteHeader";
 import Disclaimer from "@/app/components/Disclaimer";
 
@@ -13,7 +15,11 @@ export default async function StockSimplePage({ params }: PageProps) {
   const { symbol } = await params;
   const symbolUpper = symbol.toUpperCase();
 
-  const top5Data = await getTop5().catch(() => null);
+  const [top5Data, lang] = await Promise.all([
+    getTop5().catch(() => null),
+    detectLang(),
+  ]);
+
   const stock = top5Data?.top5.find((s) => s.symbol === symbolUpper);
 
   if (!stock) {
@@ -22,7 +28,7 @@ export default async function StockSimplePage({ params }: PageProps) {
         <SiteHeader compact />
         <div style={{ maxWidth: "560px", margin: "0 auto", padding: "20px" }}>
           <Link href="/dashboard" style={{ color: "#6b6861", fontSize: "14px", textDecoration: "none" }}>
-            &larr; Retour au dashboard
+            &larr; {t(lang, "back_to_dashboard")}
           </Link>
           <h1 style={{
             fontFamily: "var(--font-serif, serif)",
@@ -30,10 +36,10 @@ export default async function StockSimplePage({ params }: PageProps) {
             marginTop: "20px",
             color: "#1a1917",
           }}>
-            {symbolUpper} non trouve
+            {t(lang, "symbol_not_found", symbolUpper)}
           </h1>
           <p style={{ color: "#6b6861", fontSize: "14px", marginTop: "8px" }}>
-            Cette action ne fait pas partie du top 5 du jour.
+            {t(lang, "stock_not_in_top5")}
           </p>
         </div>
       </div>
@@ -47,18 +53,19 @@ export default async function StockSimplePage({ params }: PageProps) {
       ? "sell"
       : "buy";
 
-  // Texte du "Pourquoi" (derive des signaux)
   const momPct = Math.round(stock.signals.momentum_12_1.percentile);
   const proxPct = Math.round(stock.signals.proximity_52w_high.percentile);
   const volPct = Math.round(stock.signals.volume_abnormal.percentile);
 
   const reasons: string[] = [];
-  if (proxPct >= 80) reasons.push(`proche de son plus haut annuel (${proxPct}e percentile)`);
-  if (momPct >= 80) reasons.push("avec un momentum fort");
-  if (volPct >= 80) reasons.push("avec un volume d&rsquo;echanges eleve");
+  if (proxPct >= 80) reasons.push(t(lang, "reason_proximity", proxPct));
+  if (momPct >= 80) reasons.push(t(lang, "reason_momentum"));
+  if (volPct >= 80) reasons.push(t(lang, "reason_volume"));
   const reasonText = reasons.length > 0
-    ? `Cette action est ${reasons.join(", ")}. Les trois signaux convergent vers cette analyse.`
-    : "Les trois signaux de cette action convergent vers cette analyse.";
+    ? (lang === "fr"
+        ? `Cette action est ${reasons.join(", ")}. ${t(lang, "reason_conclusion")}`
+        : `This stock is ${reasons.join(", ")}. ${t(lang, "reason_conclusion")}`)
+    : t(lang, "reason_default");
 
   return (
     <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
@@ -243,27 +250,29 @@ export default async function StockSimplePage({ params }: PageProps) {
           .technical-cta:hover { opacity: 0.9; }
         `}</style>
 
-        <Link href="/dashboard" className="back-link">&larr; Retour au top 5</Link>
+        <Link href="/dashboard" className="back-link">
+          &larr; {t(lang, "back_to_top5")}
+        </Link>
 
         <div className="hero">
-          <div className="hero-rank">Rang #{stock.rank} du jour</div>
+          <div className="hero-rank">{t(lang, "rank_of_day", stock.rank)}</div>
           <div className="hero-symbol">{stock.symbol}</div>
-          <div className="hero-decision-label">Decision du jour</div>
+          <div className="hero-decision-label">{t(lang, "decision_of_day")}</div>
           <div className={`hero-reco ${recoClass}`}>{stock.recommendation.replace("_", " ")}</div>
           <div className="hero-score">{stock.composite_score.toFixed(1)} / 100</div>
         </div>
 
-        <h2 className="section-title">Pourquoi ?</h2>
+        <h2 className="section-title">{t(lang, "why")}</h2>
         <div className="why-card">
           {reasonText}
         </div>
 
-        <h2 className="section-title">Les 3 signaux</h2>
+        <h2 className="section-title">{t(lang, "three_signals")}</h2>
         <div className="signals-list">
           <div className="signal-row">
             <div className="signal-main">
-              <div className="signal-name">Momentum</div>
-              <div className="signal-desc">Force de la tendance sur 12 mois</div>
+              <div className="signal-name">{t(lang, "signal_momentum")}</div>
+              <div className="signal-desc">{t(lang, "signal_momentum_desc")}</div>
             </div>
             <div className="signal-value-wrap">
               <div className="signal-bar-wrap">
@@ -274,8 +283,8 @@ export default async function StockSimplePage({ params }: PageProps) {
           </div>
           <div className="signal-row">
             <div className="signal-main">
-              <div className="signal-name">Proximite 52 semaines</div>
-              <div className="signal-desc">Distance au plus haut annuel</div>
+              <div className="signal-name">{t(lang, "signal_proximity")}</div>
+              <div className="signal-desc">{t(lang, "signal_proximity_desc")}</div>
             </div>
             <div className="signal-value-wrap">
               <div className="signal-bar-wrap">
@@ -286,8 +295,8 @@ export default async function StockSimplePage({ params }: PageProps) {
           </div>
           <div className="signal-row">
             <div className="signal-main">
-              <div className="signal-name">Volume anormal</div>
-              <div className="signal-desc">Attention nouvelle du marche</div>
+              <div className="signal-name">{t(lang, "signal_volume")}</div>
+              <div className="signal-desc">{t(lang, "signal_volume_desc")}</div>
             </div>
             <div className="signal-value-wrap">
               <div className="signal-bar-wrap">
@@ -299,7 +308,7 @@ export default async function StockSimplePage({ params }: PageProps) {
         </div>
 
         <Link href={`/dashboard/${stock.symbol}/technical`} className="technical-cta">
-          Voir l&rsquo;analyse technique detaillee &rarr;
+          {t(lang, "view_technical")} &rarr;
         </Link>
 
         <Disclaimer />

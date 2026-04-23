@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { getTop5 } from "@/lib/api";
+import { detectLang } from "@/lib/lang";
+import { t } from "@/lib/i18n";
 import SiteHeader from "@/app/components/SiteHeader";
 import Disclaimer from "@/app/components/Disclaimer";
 
 export const revalidate = 300;
 
 export default async function DashboardPage() {
-  const top5Data = await getTop5().catch(() => null);
+  const [top5Data, lang] = await Promise.all([
+    getTop5().catch(() => null),
+    detectLang(),
+  ]);
+
   const top5 = top5Data?.top5 || [];
   const regime = top5Data?.regime || "NEUTRAL";
   const scanDate = top5Data?.scan_date || "";
@@ -86,8 +92,7 @@ export default async function DashboardPage() {
             color: #1a1917;
           }
           .regime-value.bull { background: #e8f3ea; color: #2d7a3e; }
-          .regime-value.bear { background: #f5e4e4; color: #b93b3b; }
-          .regime-value.panic { background: #f5e4e4; color: #b93b3b; }
+          .regime-value.bear, .regime-value.panic { background: #f5e4e4; color: #b93b3b; }
 
           .top5-grid {
             display: grid;
@@ -172,9 +177,7 @@ export default async function DashboardPage() {
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
           }
-          .signal-mini {
-            text-align: center;
-          }
+          .signal-mini { text-align: center; }
           .signal-mini-label {
             font-size: 9px;
             color: #6b6861;
@@ -192,12 +195,12 @@ export default async function DashboardPage() {
         `}</style>
 
         <div className="dashboard-intro">
-          <h1 className="dashboard-title">Top 5 du jour</h1>
-          <div className="dashboard-sub">{scanDate || "Aujourd'hui"}</div>
+          <h1 className="dashboard-title">{t(lang, "dashboard_title")}</h1>
+          <div className="dashboard-sub">{scanDate || t(lang, "today")}</div>
         </div>
 
         <div className="regime-banner">
-          <span className="regime-label">Regime marche</span>
+          <span className="regime-label">{t(lang, "regime_market")}</span>
           <span className={`regime-value ${regime.toLowerCase()}`}>{regime}</span>
         </div>
 
@@ -207,7 +210,7 @@ export default async function DashboardPage() {
                               (stock.recommendation === "SELL" || stock.recommendation === "STRONG_SELL") ? "sell" : "");
             return (
               <Link key={stock.symbol} href={`/dashboard/${stock.symbol}`} className="stock-card">
-                <div className="stock-rank">RANG {stock.rank}</div>
+                <div className="stock-rank">{t(lang, "rank")} {stock.rank}</div>
                 <div className="stock-symbol">{stock.symbol}</div>
                 <div className="stock-reco-row">
                   <span className={`stock-reco ${recoClass}`}>{stock.recommendation.replace("_", " ")}</span>
@@ -215,7 +218,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="stock-signals">
                   <div className="signal-mini">
-                    <div className="signal-mini-label">Momentum</div>
+                    <div className="signal-mini-label">{t(lang, "signal_momentum")}</div>
                     <div className="signal-mini-value">{Math.round(stock.signals.momentum_12_1.percentile)}</div>
                   </div>
                   <div className="signal-mini">
@@ -223,7 +226,7 @@ export default async function DashboardPage() {
                     <div className="signal-mini-value">{Math.round(stock.signals.proximity_52w_high.percentile)}</div>
                   </div>
                   <div className="signal-mini">
-                    <div className="signal-mini-label">Volume</div>
+                    <div className="signal-mini-label">{t(lang, "signal_volume")}</div>
                     <div className="signal-mini-value">{Math.round(stock.signals.volume_abnormal.percentile)}</div>
                   </div>
                 </div>

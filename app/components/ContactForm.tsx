@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { t, type Lang } from "@/lib/i18n";
 
-export default function ContactForm() {
+interface Props {
+  lang: Lang;
+}
+
+export default function ContactForm({ lang }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -15,11 +20,11 @@ export default function ContactForm() {
     setError("");
 
     if (!email || !email.includes("@")) {
-      setError("Email invalide");
+      setError(t(lang, "error_email_short"));
       return;
     }
     if (!message || message.trim().length < 5) {
-      setError("Message trop court");
+      setError(t(lang, "error_message_short"));
       return;
     }
 
@@ -38,10 +43,10 @@ export default function ContactForm() {
         setEmail("");
         setMessage("");
       } else {
-        setError(data.error || "Une erreur est survenue");
+        setError(data.error || t(lang, "error_generic"));
       }
     } catch {
-      setError("Erreur de connexion");
+      setError(t(lang, "error_connection"));
     }
     setSubmitting(false);
   }
@@ -51,21 +56,21 @@ export default function ContactForm() {
       <div style={{
         padding: "32px 20px",
         textAlign: "center",
-        background: "var(--success-100)",
+        background: "#e8f3ea",
         borderRadius: "12px",
-        border: "1px solid var(--success-200, var(--success-100))",
+        border: "1px solid #c8e5cf",
       }}>
         <div style={{
           fontFamily: "var(--font-serif, serif)",
           fontSize: "22px",
           fontWeight: 600,
-          color: "var(--success-700)",
+          color: "#2d7a3e",
           marginBottom: "8px",
         }}>
-          Message envoye
+          {t(lang, "contact_success_title")}
         </div>
-        <p style={{ color: "var(--ink-500)", fontSize: "14px", margin: 0 }}>
-          Je vous reponds dans les plus brefs delais.
+        <p style={{ color: "#6b6861", fontSize: "14px", margin: 0 }}>
+          {t(lang, "contact_success_text")}
         </p>
       </div>
     );
@@ -84,7 +89,7 @@ export default function ContactForm() {
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.08em;
-          color: var(--ink-500);
+          color: #6b6861;
           font-family: var(--font-mono, monospace);
           margin-bottom: 6px;
           display: block;
@@ -93,20 +98,18 @@ export default function ContactForm() {
         .contact-textarea {
           width: 100%;
           padding: 14px 16px;
-          border: 1px solid var(--ink-200);
+          border: 1px solid #d4d1ca;
           border-radius: 8px;
           font-size: 15px;
           font-family: inherit;
-          background: var(--surface);
-          color: var(--ink-900);
+          background: #ffffff;
+          color: #1a1917;
           outline: none;
           transition: border-color 0.15s;
           box-sizing: border-box;
         }
         .contact-input:focus,
-        .contact-textarea:focus {
-          border-color: var(--ink-900);
-        }
+        .contact-textarea:focus { border-color: #1a1917; }
         .contact-textarea {
           min-height: 140px;
           resize: vertical;
@@ -116,8 +119,8 @@ export default function ContactForm() {
         }
         .contact-submit {
           padding: 14px 24px;
-          background: var(--ink-900);
-          color: var(--bg);
+          background: #1a1917;
+          color: #faf9f7;
           border: none;
           border-radius: 8px;
           font-size: 14px;
@@ -132,8 +135,8 @@ export default function ContactForm() {
         .contact-submit:disabled { opacity: 0.5; cursor: not-allowed; }
         .contact-error {
           padding: 10px 12px;
-          background: var(--danger-100);
-          color: var(--danger-700);
+          background: #f5e4e4;
+          color: #b93b3b;
           border-radius: 6px;
           font-size: 13px;
           text-align: center;
@@ -141,12 +144,12 @@ export default function ContactForm() {
       `}</style>
 
       <div>
-        <label className="contact-label">Nom (facultatif)</label>
+        <label className="contact-label">{t(lang, "contact_name_label")}</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Votre nom"
+          placeholder={t(lang, "contact_name_placeholder")}
           disabled={submitting}
           className="contact-input"
           maxLength={120}
@@ -154,12 +157,12 @@ export default function ContactForm() {
       </div>
 
       <div>
-        <label className="contact-label">Email *</label>
+        <label className="contact-label">{t(lang, "contact_email_label")}</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="votre@email.com"
+          placeholder={t(lang, "email_placeholder")}
           required
           disabled={submitting}
           className="contact-input"
@@ -167,11 +170,11 @@ export default function ContactForm() {
       </div>
 
       <div>
-        <label className="contact-label">Message *</label>
+        <label className="contact-label">{t(lang, "contact_message_label")}</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Votre message..."
+          placeholder={t(lang, "contact_message_placeholder")}
           required
           disabled={submitting}
           className="contact-textarea"
@@ -182,7 +185,7 @@ export default function ContactForm() {
       {error && <div className="contact-error">{error}</div>}
 
       <button type="submit" disabled={submitting} className="contact-submit">
-        {submitting ? "Envoi..." : "Envoyer le message"}
+        {submitting ? t(lang, "contact_submit_loading") : t(lang, "contact_submit")}
       </button>
     </form>
   );

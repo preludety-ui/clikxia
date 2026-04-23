@@ -1,14 +1,20 @@
 import Link from "next/link";
+import { detectLang } from "@/lib/lang";
+import { t } from "@/lib/i18n";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 interface Props {
-  compact?: boolean;  // si true, plus petit (pour pages internes)
+  compact?: boolean;
 }
 
-export default function SiteHeader({ compact = false }: Props) {
+export default async function SiteHeader({ compact = false }: Props) {
+  const lang = await detectLang();
+
   return (
     <div className={compact ? "site-header site-header-compact" : "site-header"}>
       <style>{`
         .site-header {
+          position: relative;
           text-align: center;
           padding: 48px 20px 32px;
           background: #faf9f7;
@@ -22,6 +28,44 @@ export default function SiteHeader({ compact = false }: Props) {
           }
           .site-header-compact {
             padding: 36px 32px 24px;
+          }
+        }
+
+        .site-header-actions {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          z-index: 10;
+        }
+        @media (min-width: 768px) {
+          .site-header-actions {
+            top: 28px;
+            right: 32px;
+          }
+        }
+
+        .header-contact-link {
+          font-family: var(--font-mono, monospace);
+          font-size: 11px;
+          color: #6b6861;
+          text-decoration: none;
+          font-weight: 600;
+          letter-spacing: 0.06em;
+          padding: 8px 10px;
+          border-radius: 6px;
+          transition: all 0.15s;
+          white-space: nowrap;
+        }
+        .header-contact-link:hover {
+          color: #1a1917;
+          background: #ffffff;
+        }
+        @media (max-width: 500px) {
+          .header-contact-link {
+            display: none;
           }
         }
 
@@ -65,10 +109,17 @@ export default function SiteHeader({ compact = false }: Props) {
         }
       `}</style>
 
+      <div className="site-header-actions">
+        <Link href="/contact" className="header-contact-link">
+          {t(lang, "contact_link")}
+        </Link>
+        <LanguageSwitcher initialLang={lang} />
+      </div>
+
       <Link href="/" className="site-logo">
         <span className="site-logo-clik">CLIK</span><span className="site-logo-xia">XIA</span>
       </Link>
-      <div className="site-tagline">Copilote de decision &middot; Bourse &middot; Canada</div>
+      <div className="site-tagline">{t(lang, "tagline")}</div>
     </div>
   );
 }

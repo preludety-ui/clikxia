@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getStockTechnical, recoLabel } from "@/lib/api";
 import Disclaimer from "@/app/components/Disclaimer";
 import SiteHeader from "@/app/components/SiteHeader";
+import { detectLang } from "@/lib/lang";
+import { t, type Lang } from "@/lib/i18n";
 import type {
   StockTechnicalResponse,
   QualityData,
@@ -125,7 +127,7 @@ function computeProfileLabel(
     return {
       label: "Defensive",
       color: "#2d7a3e",
-      tooltip: "Stabilite du prix prioritaire"
+      tooltip: "Price stability prioritized"
     };
   }
 
@@ -187,6 +189,7 @@ function Hero({
   rankPosition,
   profileLabel,
   profileColor,
+  lang,
 }: {
   symbol: string;
   recommendation: string | null;
@@ -197,6 +200,7 @@ function Hero({
   rankPosition: number | null;
   profileLabel: string | null;
   profileColor: string | null;
+  lang: Lang;
 }) {
   const recoColor =
     recommendation === "STRONG_BUY" || recommendation === "BUY"
@@ -294,7 +298,7 @@ function Hero({
             className="mono"
             style={{ fontSize: "14px", color: changeColor, fontWeight: 500 }}
           >
-            {fmtPct(change1d)} aujourd&apos;hui
+            {fmtPct(change1d)} {t(lang, "today")}
           </span>
         </div>
       )}
@@ -314,7 +318,7 @@ function Hero({
               className="mono"
               style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6b6861" }}
             >
-              Score composite CLIKXIA
+              {t(lang, "composite_score")}
             </span>
             <span className="mono" style={{ fontSize: "14px", fontWeight: 500, color: "#1a1917" }}>
               {fmtNum(compositeScore, 1)} / 100
@@ -332,7 +336,7 @@ function Hero({
           </div>
           {rankPosition !== null && (
             <div style={{ fontSize: "11px", color: "#6b6861", marginTop: "6px" }}>
-              Rang {rankPosition} de la selection
+              {t(lang, "rank_selection", rankPosition)}
             </div>
           )}
         </div>
@@ -429,6 +433,7 @@ function FactorCard({
   labelColor,
   percentile,
   rows,
+  lang,
 }: {
   title: string;
   description: string;
@@ -436,6 +441,7 @@ function FactorCard({
   labelColor: string;
   percentile: number | null;
   rows: { label: string; value: string }[];
+  lang: Lang;
 }) {
   return (
     <div
@@ -497,7 +503,7 @@ function FactorCard({
   );
 }
 
-function PriceContextSection({ pc }: { pc: PriceContextData }) {
+function PriceContextSection({ pc, lang }: { pc: PriceContextData; lang: Lang }) {
   const rangePos = pc.range_position_52w ?? 0;
   const changeColor = (v: number | null) =>
     v === null || v === undefined ? "var(--ink-500)" : v >= 0 ? "var(--success-700)" : "var(--danger-700)";
@@ -516,7 +522,7 @@ function PriceContextSection({ pc }: { pc: PriceContextData }) {
         className="mono"
         style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6b6861", marginBottom: "12px" }}
       >
-        Range 52 semaines
+        {t(lang, "range_52w")}
       </div>
 
       <div style={{ position: "relative", height: "6px", background: "#e8e6e1", borderRadius: "3px", marginBottom: "8px" }}>
@@ -546,7 +552,7 @@ function PriceContextSection({ pc }: { pc: PriceContextData }) {
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#6b6861", fontFamily: "var(--font-mono), monospace" }}>
         <span>{fmtPrice(pc.low_52w)}</span>
         <span style={{ color: "#1a1917", fontWeight: 500 }}>
-          Position : {fmtNum(pc.range_position_52w, 1)}%
+          {t(lang, "position")} : {fmtNum(pc.range_position_52w, 1)}%
         </span>
         <span>{fmtPrice(pc.high_52w)}</span>
       </div>
@@ -561,19 +567,19 @@ function PriceContextSection({ pc }: { pc: PriceContextData }) {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
           <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
-            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>1 jour</div>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>{t(lang, "day_1")}</div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.change_1d) }}>
               {fmtPct(pc.change_1d)}
             </div>
           </div>
           <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
-            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>5 jours</div>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>{t(lang, "days_5")}</div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.change_5d) }}>
               {fmtPct(pc.change_5d)}
             </div>
           </div>
           <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
-            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>30 jours</div>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>{t(lang, "days_30")}</div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.change_30d) }}>
               {fmtPct(pc.change_30d)}
             </div>
@@ -587,34 +593,34 @@ function PriceContextSection({ pc }: { pc: PriceContextData }) {
           className="mono"
           style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6b6861", marginBottom: "10px" }}
         >
-          Moyennes mobiles &amp; volume
+          {t(lang, "sma_volume")}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
           <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
             <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
-              Prix vs SMA 50
+              {t(lang, "price_vs_sma50")}
             </div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.price_vs_sma50) }}>
               {fmtPct(pc.price_vs_sma50)}
             </div>
             <div style={{ fontSize: "10px", color: "#6b6861", marginTop: "2px" }}>
-              SMA 50 : {fmtPrice(pc.sma_50)}
+              {t(lang, "sma_50")} : {fmtPrice(pc.sma_50)}
             </div>
           </div>
           <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
             <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
-              Prix vs SMA 200
+              {t(lang, "price_vs_sma200")}
             </div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.price_vs_sma200) }}>
               {fmtPct(pc.price_vs_sma200)}
             </div>
             <div style={{ fontSize: "10px", color: "#6b6861", marginTop: "2px" }}>
-              SMA 200 : {fmtPrice(pc.sma_200)}
+              {t(lang, "sma_200")} : {fmtPrice(pc.sma_200)}
             </div>
           </div>
           <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px", gridColumn: "1 / -1" }}>
             <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
-              Volume vs moyenne 50j
+              {t(lang, "volume_vs_avg")}
             </div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: "#1a1917" }}>
               {fmtVolumeRatio(pc.volume_ratio)}
@@ -633,6 +639,7 @@ function PriceContextSection({ pc }: { pc: PriceContextData }) {
 export default async function TechnicalPage({ params }: PageProps) {
   const { symbol } = await params;
   const symbolUpper = symbol.toUpperCase();
+  const lang = await detectLang();
 
   let data: StockTechnicalResponse;
   try {
@@ -693,18 +700,53 @@ export default async function TechnicalPage({ params }: PageProps) {
   const profile = computeProfileLabel(momentumPct, ivolPct, qualityPct);
 
   return (
-    <div className="clikxia-app">
-      <div style={{ maxWidth: "440px", margin: "0 auto", minHeight: "100vh" }}>
+    <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
+      <SiteHeader compact />
+      <div className="technical-container">
+        <style>{`
+          .technical-container {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+          }
+          @media (min-width: 768px) {
+            .technical-container {
+              max-width: 720px;
+              padding: 0 32px 48px;
+            }
+          }
+          @media (min-width: 1024px) {
+            .technical-container {
+              max-width: 1000px;
+              padding: 0 40px 56px;
+            }
+            .technical-grid-3 {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 16px;
+            }
+            .technical-grid-3 > div { margin-bottom: 0 !important; }
+          }
+          @media (min-width: 768px) and (max-width: 1023px) {
+            .technical-grid-3 {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 12px;
+            }
+            .technical-grid-3 > div { margin-bottom: 0 !important; }
+          }
+        `}</style>
 
         {/* Navigation */}
-        <div style={{ padding: "48px 20px 8px", background: "#ffffff" }}>
-          <Link href={`/dashboard/${data.symbol}`} style={{ color: "#6b6861", fontSize: "14px" }}>
-            &larr; Vue simple
+        <div style={{ padding: "8px 0 16px" }}>
+          <Link href={`/dashboard/${data.symbol}`} style={{ color: "#6b6861", fontSize: "14px", textDecoration: "none" }}>
+            &larr; {t(lang, "simple_view")}
           </Link>
         </div>
 
         {/* Hero */}
         <Hero
+          lang={lang}
           symbol={data.symbol}
           recommendation={data.recommendation}
           regime={data.market_regime}
@@ -717,20 +759,20 @@ export default async function TechnicalPage({ params }: PageProps) {
         />
 
         {/* Signaux CLIKXIA */}
-        <SectionTitle title="Signaux CLIKXIA" subtitle="Les 3 signaux qui composent la recommandation" />
-        <div style={{ padding: "0 20px" }}>
+        <SectionTitle title={t(lang, "signaux_clikxia")} subtitle={t(lang, "signaux_subtitle")} />
+        <div className="technical-grid-3">
           <SignalCard
-            label="Momentum 12-1"
+            label={t(lang, "momentum_label")}
             value={data.signals.momentum_12_1.value}
             percentile={data.signals.momentum_12_1.percentile}
           />
           <SignalCard
-            label="Proximite 52w high"
+            label={t(lang, "proximity_label")}
             value={data.signals.proximity_52w_high.value}
             percentile={data.signals.proximity_52w_high.percentile}
           />
           <SignalCard
-            label="Volume anormal"
+            label={t(lang, "volume_label")}
             value={data.signals.volume_abnormal.value}
             percentile={data.signals.volume_abnormal.percentile}
             unit="x"
@@ -738,27 +780,27 @@ export default async function TechnicalPage({ params }: PageProps) {
         </div>
 
         {/* Facteurs fondamentaux */}
-        <SectionTitle title="Facteurs fondamentaux" subtitle="Quality, Value et Low Volatility" />
-        <div style={{ padding: "0 20px" }}>
+        <SectionTitle title={t(lang, "factors_title")} subtitle={t(lang, "factors_subtitle")} />
+        <div className="technical-grid-3">
           {q && (
-            <FactorCard
+            <FactorCard lang={lang}
               title="Quality"
-              description="Rentabilite operationnelle"
+              description={t(lang, "quality_desc")}
               label={qLabel.label}
               labelColor={qLabel.color}
               percentile={qualityPct}
               rows={[
                 { label: "PROF", value: fmtNum(q.prof, 3) },
                 { label: "ROE", value: q.roe !== null ? fmtPct(q.roe * 100, 1) : "—" },
-                { label: "Marge nette", value: q.net_margin !== null ? fmtPctAbs(q.net_margin * 100, 1) : "—" },
+                { label: t(lang, "net_margin"), value: q.net_margin !== null ? fmtPctAbs(q.net_margin * 100, 1) : "—" },
               ]}
             />
           )}
 
           {v && (
-            <FactorCard
+            <FactorCard lang={lang}
               title="Value"
-              description="Valorisation vs fondamentaux"
+              description={t(lang, "value_desc")}
               label={vLabel.label}
               labelColor={vLabel.color}
               percentile={valuePct}
@@ -772,9 +814,9 @@ export default async function TechnicalPage({ params }: PageProps) {
           )}
 
           {lv && (
-            <FactorCard
+            <FactorCard lang={lang}
               title="Low Volatility"
-              description="Stabilite du prix"
+              description={t(lang, "lowvol_desc")}
               label={lvLabel.label}
               labelColor={lvLabel.color}
               percentile={ivolPct}
@@ -790,9 +832,9 @@ export default async function TechnicalPage({ params }: PageProps) {
         {/* Contexte prix */}
         {pc && (
           <>
-            <SectionTitle title="Contexte prix" subtitle="Range 52 semaines, moyennes mobiles, variations" />
-            <div style={{ padding: "0 20px" }}>
-              <PriceContextSection pc={pc} />
+            <SectionTitle title={t(lang, "price_context")} subtitle={t(lang, "price_context_subtitle")} />
+            <div>
+              <PriceContextSection pc={pc} lang={lang} />
             </div>
           </>
         )}

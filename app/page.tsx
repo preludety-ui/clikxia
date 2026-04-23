@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { getTop5 } from "@/lib/api";
 import { supabaseAdmin } from "@/lib/supabase";
+import { detectLang } from "@/lib/lang";
+import { t } from "@/lib/i18n";
 import LandingForm from "@/app/components/LandingForm";
 import Disclaimer from "@/app/components/Disclaimer";
+import SiteHeader from "@/app/components/SiteHeader";
 
 export const revalidate = 300;
 
@@ -12,7 +15,7 @@ async function fetchCount(): Promise<number> {
       .from("leads")
       .select("*", { count: "exact", head: true });
     const realCount = count || 0;
-    const fictionalOffset = 262;  // 247 ficitfs + 15 vrais emails de l ancien systeme
+    const fictionalOffset = 262;
     return realCount + fictionalOffset;
   } catch {
     return 277;
@@ -20,9 +23,10 @@ async function fetchCount(): Promise<number> {
 }
 
 export default async function LandingPage() {
-  const [top5Data, count] = await Promise.all([
+  const [top5Data, count, lang] = await Promise.all([
     getTop5().catch(() => null),
     fetchCount(),
+    detectLang(),
   ]);
 
   const top5 = top5Data?.top5 || [];
@@ -37,52 +41,23 @@ export default async function LandingPage() {
           color: #1a1917;
         }
         .clikxia-landing a { color: inherit; }
+
         .landing-container {
           max-width: 560px;
           margin: 0 auto;
-          padding: 48px 20px 24px;
+          padding: 0 20px 24px;
         }
         @media (min-width: 768px) {
           .landing-container {
             max-width: 720px;
-            padding: 72px 32px 32px;
+            padding: 0 32px 32px;
           }
         }
         @media (min-width: 1024px) {
           .landing-container {
             max-width: 900px;
-            padding: 80px 40px 40px;
+            padding: 0 40px 40px;
           }
-        }
-
-        .landing-header {
-          text-align: center;
-          margin-bottom: 40px;
-        }
-        .landing-logo {
-          font-family: var(--font-serif, "Fraunces", serif);
-          font-size: 44px;
-          font-weight: 700;
-          letter-spacing: -0.03em;
-          line-height: 1;
-          margin-bottom: 10px;
-        }
-        @media (min-width: 768px) {
-          .landing-logo { font-size: 56px; }
-        }
-        @media (min-width: 1024px) {
-          .landing-logo { font-size: 64px; }
-        }
-        .logo-clik { color: #1a1917; }
-        .logo-xia { color: #0A8B5C; }
-
-        .landing-tagline {
-          font-size: 12px;
-          color: #6b6861;
-          text-transform: uppercase;
-          letter-spacing: 0.16em;
-          font-family: var(--font-mono, monospace);
-          font-weight: 500;
         }
 
         .top5-section {
@@ -256,20 +231,15 @@ export default async function LandingPage() {
         }
       `}</style>
 
+      <SiteHeader />
+
       <div className="landing-container">
-        {/* Header avec logo CLIK XIA */}
-        <div className="landing-header">
-          <div className="landing-logo">
-            <span className="logo-clik">CLIK</span><span className="logo-xia">XIA</span>
-          </div>
-          <div className="landing-tagline">Copilote de decision &middot; Bourse &middot; Canada</div>
-        </div>
 
         {/* Top 5 du jour */}
         <div className="top5-section">
           <div className="top5-header">
-            <span className="top5-title">Top 5 du jour</span>
-            <span className="top5-regime">Regime : {regime}</span>
+            <span className="top5-title">{t(lang, "top5_title")}</span>
+            <span className="top5-regime">{t(lang, "regime_label")} : {regime}</span>
           </div>
           {top5.length > 0 ? (
             top5.map((stock) => (
@@ -283,45 +253,47 @@ export default async function LandingPage() {
               </div>
             ))
           ) : (
-            <div style={{ padding: "24px 0", textAlign: "center", color: "var(--ink-500)", fontSize: "13px" }}>
-              Chargement en cours...
+            <div style={{ padding: "24px 0", textAlign: "center", color: "#6b6861", fontSize: "13px" }}>
+              ...
             </div>
           )}
         </div>
 
         {/* Phrase magique */}
         <div className="hook-section">
-          <p className="hook-phrase">Voici le top 5 d&rsquo;aujourd&rsquo;hui.<br />Decouvrez pourquoi.</p>
+          <p className="hook-phrase">
+            {t(lang, "hook_phrase_part1")}<br />{t(lang, "hook_phrase_part2")}
+          </p>
         </div>
 
         {/* Formulaire email */}
-        <LandingForm />
+        <LandingForm lang={lang} />
 
         {/* Compteur dynamique */}
         <div className="counter-text">
-          <span className="counter-number">{count}</span> personnes deja inscrites
+          <span className="counter-number">{count}</span> {t(lang, "counter_suffix")}
         </div>
 
         {/* Value prop */}
         <div className="value-prop">
           <div className="value-item">
-            <div className="value-number">2 237</div>
-            <div className="value-label">actions analysees quotidiennement</div>
+            <div className="value-number">{t(lang, "value_prop_1_number")}</div>
+            <div className="value-label">{t(lang, "value_prop_1_label")}</div>
           </div>
           <div className="value-item">
-            <div className="value-number">3</div>
-            <div className="value-label">facteurs : Quality, Value, Low Volatility</div>
+            <div className="value-number">{t(lang, "value_prop_2_number")}</div>
+            <div className="value-label">{t(lang, "value_prop_2_label")}</div>
           </div>
           <div className="value-item">
-            <div className="value-number">Daily</div>
-            <div className="value-label">mise a jour chaque jour de bourse</div>
+            <div className="value-number">{t(lang, "value_prop_3_number")}</div>
+            <div className="value-label">{t(lang, "value_prop_3_label")}</div>
           </div>
         </div>
 
         {/* Contact */}
         <div className="contact-link-wrap">
           <Link href="/contact" className="contact-link">
-            Me contacter
+            {t(lang, "contact_link")}
           </Link>
         </div>
 
