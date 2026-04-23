@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getStockTechnical, recoLabel } from "@/lib/api";
 import Disclaimer from "@/app/components/Disclaimer";
+import SiteHeader from "@/app/components/SiteHeader";
 import type {
   StockTechnicalResponse,
   QualityData,
@@ -58,24 +59,24 @@ function fmtPercentile(v: number | null | undefined): string {
 
 // Labels bases sur percentile (scientifiquement fondes)
 function qualityLabel(percentile: number | null | undefined): { label: string; color: string } {
-  if (percentile === null || percentile === undefined) return { label: "—", color: "var(--ink-500)" };
-  if (percentile >= 70) return { label: "ROBUST", color: "var(--success-700)" };
-  if (percentile >= 30) return { label: "NEUTRAL", color: "var(--ink-500)" };
-  return { label: "WEAK", color: "var(--danger-700)" };
+  if (percentile === null || percentile === undefined) return { label: "—", color: "#6b6861" };
+  if (percentile >= 70) return { label: "ROBUST", color: "#2d7a3e" };
+  if (percentile >= 30) return { label: "NEUTRAL", color: "#6b6861" };
+  return { label: "WEAK", color: "#b93b3b" };
 }
 
 function valueLabel(percentile: number | null | undefined): { label: string; color: string } {
-  if (percentile === null || percentile === undefined) return { label: "—", color: "var(--ink-500)" };
-  if (percentile >= 70) return { label: "UNDERVALUED", color: "var(--success-700)" };
-  if (percentile >= 30) return { label: "FAIR", color: "var(--ink-500)" };
-  return { label: "GROWTH PREMIUM", color: "var(--warning-700)" };
+  if (percentile === null || percentile === undefined) return { label: "—", color: "#6b6861" };
+  if (percentile >= 70) return { label: "UNDERVALUED", color: "#2d7a3e" };
+  if (percentile >= 30) return { label: "FAIR", color: "#6b6861" };
+  return { label: "GROWTH PREMIUM", color: "#9a7628" };
 }
 
 function ivolLabel(percentile: number | null | undefined): { label: string; color: string } {
-  if (percentile === null || percentile === undefined) return { label: "—", color: "var(--ink-500)" };
-  if (percentile >= 70) return { label: "DEFENSIVE", color: "var(--success-700)" };
-  if (percentile >= 30) return { label: "MODERATE", color: "var(--ink-500)" };
-  return { label: "HIGH RISK", color: "var(--danger-700)" };
+  if (percentile === null || percentile === undefined) return { label: "—", color: "#6b6861" };
+  if (percentile >= 70) return { label: "DEFENSIVE", color: "#2d7a3e" };
+  if (percentile >= 30) return { label: "MODERATE", color: "#6b6861" };
+  return { label: "HIGH RISK", color: "#b93b3b" };
 }
 
 // ============================================================
@@ -102,7 +103,7 @@ function computeProfileLabel(
   ) {
     return {
       label: "Quality Momentum",
-      color: "var(--success-700)",
+      color: "#2d7a3e",
       tooltip: "Momentum eleve avec stabilite du prix (profil favorable)"
     };
   }
@@ -114,7 +115,7 @@ function computeProfileLabel(
   ) {
     return {
       label: "Speculative Momentum",
-      color: "var(--warning-700)",
+      color: "#9a7628",
       tooltip: "Momentum eleve mais volatilite elevee (risque de reversal)"
     };
   }
@@ -123,7 +124,7 @@ function computeProfileLabel(
   if (ivolPct !== null && ivolPct >= 70 && (momentumPct === null || momentumPct < 70)) {
     return {
       label: "Defensive",
-      color: "var(--success-700)",
+      color: "#2d7a3e",
       tooltip: "Stabilite du prix prioritaire"
     };
   }
@@ -131,7 +132,7 @@ function computeProfileLabel(
   // Sinon : profil mixte
   return {
     label: "Balanced",
-    color: "var(--ink-500)",
+    color: "#6b6861",
     tooltip: "Pas de tilt factoriel dominant"
   };
 }
@@ -219,8 +220,8 @@ function Hero({
       : "var(--danger-700)";
 
   return (
-    <div style={{ padding: "8px 20px 20px", background: "var(--surface)" }}>
-      <div className="display-xl" style={{ fontSize: "40px", color: "var(--ink-900)", lineHeight: 1, marginBottom: "4px" }}>
+    <div style={{ padding: "8px 20px 20px", background: "#ffffff" }}>
+      <div className="display-xl" style={{ fontSize: "40px", color: "#1a1917", lineHeight: 1, marginBottom: "4px" }}>
         {symbol}
       </div>
 
@@ -252,8 +253,8 @@ function Hero({
               fontSize: "11px",
               fontWeight: 500,
               letterSpacing: "0.06em",
-              background: "var(--ink-100)",
-              color: "var(--ink-500)",
+              background: "#e8e6e1",
+              color: "#6b6861",
               fontFamily: "var(--font-mono), monospace",
             }}
           >
@@ -269,7 +270,7 @@ function Hero({
               fontSize: "11px",
               fontWeight: 600,
               letterSpacing: "0.04em",
-              background: "var(--surface)",
+              background: "#ffffff",
               color: profileColor || "var(--ink-700)",
               border: `1px solid ${profileColor || "var(--ink-300)"}`,
               fontFamily: "var(--font-mono), monospace",
@@ -285,7 +286,7 @@ function Hero({
         <div style={{ display: "flex", alignItems: "baseline", gap: "12px", marginBottom: "20px" }}>
           <span
             className="mono"
-            style={{ fontSize: "32px", fontWeight: 500, color: "var(--ink-900)", lineHeight: 1 }}
+            style={{ fontSize: "32px", fontWeight: 500, color: "#1a1917", lineHeight: 1 }}
           >
             {fmtPrice(currentPrice)}
           </span>
@@ -303,34 +304,34 @@ function Hero({
         <div
           style={{
             padding: "14px",
-            background: "var(--surface)",
-            border: "1px solid var(--ink-100)",
+            background: "#ffffff",
+            border: "1px solid #e8e6e1",
             borderRadius: "8px",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
             <span
               className="mono"
-              style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-500)" }}
+              style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6b6861" }}
             >
               Score composite CLIKXIA
             </span>
-            <span className="mono" style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink-900)" }}>
+            <span className="mono" style={{ fontSize: "14px", fontWeight: 500, color: "#1a1917" }}>
               {fmtNum(compositeScore, 1)} / 100
             </span>
           </div>
-          <div style={{ height: "4px", background: "var(--ink-100)", borderRadius: "2px", overflow: "hidden" }}>
+          <div style={{ height: "4px", background: "#e8e6e1", borderRadius: "2px", overflow: "hidden" }}>
             <div
               style={{
                 width: `${Math.min(100, Math.max(0, compositeScore))}%`,
                 height: "100%",
-                background: "var(--ink-900)",
+                background: "#1a1917",
                 borderRadius: "2px",
               }}
             />
           </div>
           {rankPosition !== null && (
-            <div style={{ fontSize: "11px", color: "var(--ink-500)", marginTop: "6px" }}>
+            <div style={{ fontSize: "11px", color: "#6b6861", marginTop: "6px" }}>
               Rang {rankPosition} de la selection
             </div>
           )}
@@ -343,11 +344,11 @@ function Hero({
 function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div style={{ padding: "24px 20px 8px" }}>
-      <div className="display-lg" style={{ fontSize: "20px", color: "var(--ink-900)", marginBottom: subtitle ? "4px" : "0" }}>
+      <div className="display-lg" style={{ fontSize: "20px", color: "#1a1917", marginBottom: subtitle ? "4px" : "0" }}>
         {title}
       </div>
       {subtitle && (
-        <div style={{ fontSize: "13px", color: "var(--ink-500)" }}>
+        <div style={{ fontSize: "13px", color: "#6b6861" }}>
           {subtitle}
         </div>
       )}
@@ -376,8 +377,8 @@ function SignalCard({
     <div
       style={{
         padding: "14px",
-        background: "var(--surface)",
-        border: "1px solid var(--ink-100)",
+        background: "#ffffff",
+        border: "1px solid #e8e6e1",
         borderRadius: "8px",
         marginBottom: "8px",
       }}
@@ -385,7 +386,7 @@ function SignalCard({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
         <span
           className="mono"
-          style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-500)" }}
+          style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6b6861" }}
         >
           {label}
         </span>
@@ -404,15 +405,15 @@ function SignalCard({
           {fmtPercentile(percentile)}
         </span>
       </div>
-      <div className="mono" style={{ fontSize: "22px", fontWeight: 500, color: "var(--ink-900)", marginBottom: "10px" }}>
+      <div className="mono" style={{ fontSize: "22px", fontWeight: 500, color: "#1a1917", marginBottom: "10px" }}>
         {value !== null ? `${fmtNum(value, 2)}${unit || ""}` : "—"}
       </div>
-      <div style={{ height: "3px", background: "var(--ink-100)", borderRadius: "2px", overflow: "hidden" }}>
+      <div style={{ height: "3px", background: "#e8e6e1", borderRadius: "2px", overflow: "hidden" }}>
         <div
           style={{
             width: `${Math.min(100, Math.max(0, pct))}%`,
             height: "100%",
-            background: "var(--ink-900)",
+            background: "#1a1917",
             borderRadius: "2px",
           }}
         />
@@ -440,17 +441,17 @@ function FactorCard({
     <div
       style={{
         padding: "16px",
-        background: "var(--surface)",
-        border: "1px solid var(--ink-100)",
+        background: "#ffffff",
+        border: "1px solid #e8e6e1",
         borderRadius: "8px",
         marginBottom: "8px",
       }}
     >
       <div style={{ marginBottom: "12px" }}>
-        <div style={{ fontSize: "15px", fontWeight: 600, color: "var(--ink-900)", marginBottom: "2px" }}>
+        <div style={{ fontSize: "15px", fontWeight: 600, color: "#1a1917", marginBottom: "2px" }}>
           {title}
         </div>
-        <div style={{ fontSize: "12px", color: "var(--ink-500)" }}>
+        <div style={{ fontSize: "12px", color: "#6b6861" }}>
           {description}
         </div>
       </div>
@@ -459,23 +460,23 @@ function FactorCard({
         <span className="mono" style={{ fontSize: "11px", fontWeight: 600, color: labelColor, letterSpacing: "0.04em" }}>
           {label}
         </span>
-        <span className="mono" style={{ fontSize: "11px", color: "var(--ink-500)" }}>
+        <span className="mono" style={{ fontSize: "11px", color: "#6b6861" }}>
           {fmtPercentile(percentile)}
         </span>
       </div>
 
-      <div style={{ height: "3px", background: "var(--ink-100)", borderRadius: "2px", overflow: "hidden", marginBottom: "12px" }}>
+      <div style={{ height: "3px", background: "#e8e6e1", borderRadius: "2px", overflow: "hidden", marginBottom: "12px" }}>
         <div
           style={{
             width: `${Math.min(100, Math.max(0, percentile ?? 0))}%`,
             height: "100%",
-            background: "var(--ink-900)",
+            background: "#1a1917",
             borderRadius: "2px",
           }}
         />
       </div>
 
-      <div style={{ paddingTop: "12px", borderTop: "1px solid var(--ink-100)" }}>
+      <div style={{ paddingTop: "12px", borderTop: "1px solid #e8e6e1" }}>
         {rows.map((row, i) => (
           <div
             key={i}
@@ -487,8 +488,8 @@ function FactorCard({
               fontFamily: "var(--font-mono), monospace",
             }}
           >
-            <span style={{ color: "var(--ink-500)" }}>{row.label}</span>
-            <span style={{ color: "var(--ink-900)", fontWeight: 500 }}>{row.value}</span>
+            <span style={{ color: "#6b6861" }}>{row.label}</span>
+            <span style={{ color: "#1a1917", fontWeight: 500 }}>{row.value}</span>
           </div>
         ))}
       </div>
@@ -505,27 +506,27 @@ function PriceContextSection({ pc }: { pc: PriceContextData }) {
     <div
       style={{
         padding: "16px",
-        background: "var(--surface)",
-        border: "1px solid var(--ink-100)",
+        background: "#ffffff",
+        border: "1px solid #e8e6e1",
         borderRadius: "8px",
         marginBottom: "8px",
       }}
     >
       <div
         className="mono"
-        style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-500)", marginBottom: "12px" }}
+        style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6b6861", marginBottom: "12px" }}
       >
         Range 52 semaines
       </div>
 
-      <div style={{ position: "relative", height: "6px", background: "var(--ink-100)", borderRadius: "3px", marginBottom: "8px" }}>
+      <div style={{ position: "relative", height: "6px", background: "#e8e6e1", borderRadius: "3px", marginBottom: "8px" }}>
         <div
           style={{
             position: "absolute",
             top: 0,
             height: "100%",
             width: `${Math.min(100, Math.max(0, rangePos))}%`,
-            background: "var(--ink-900)",
+            background: "#1a1917",
             borderRadius: "3px",
           }}
         />
@@ -536,43 +537,43 @@ function PriceContextSection({ pc }: { pc: PriceContextData }) {
             left: `${Math.min(100, Math.max(0, rangePos))}%`,
             width: "2px",
             height: "16px",
-            background: "var(--ink-900)",
+            background: "#1a1917",
             transform: "translateX(-1px)",
           }}
         />
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--ink-500)", fontFamily: "var(--font-mono), monospace" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#6b6861", fontFamily: "var(--font-mono), monospace" }}>
         <span>{fmtPrice(pc.low_52w)}</span>
-        <span style={{ color: "var(--ink-900)", fontWeight: 500 }}>
+        <span style={{ color: "#1a1917", fontWeight: 500 }}>
           Position : {fmtNum(pc.range_position_52w, 1)}%
         </span>
         <span>{fmtPrice(pc.high_52w)}</span>
       </div>
 
       {/* Variations */}
-      <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--ink-100)" }}>
+      <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #e8e6e1" }}>
         <div
           className="mono"
-          style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-500)", marginBottom: "10px" }}
+          style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6b6861", marginBottom: "10px" }}
         >
           Variations
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
-          <div style={{ padding: "8px", background: "var(--bg)", borderRadius: "6px" }}>
-            <div style={{ fontSize: "10px", color: "var(--ink-500)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>1 jour</div>
+          <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>1 jour</div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.change_1d) }}>
               {fmtPct(pc.change_1d)}
             </div>
           </div>
-          <div style={{ padding: "8px", background: "var(--bg)", borderRadius: "6px" }}>
-            <div style={{ fontSize: "10px", color: "var(--ink-500)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>5 jours</div>
+          <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>5 jours</div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.change_5d) }}>
               {fmtPct(pc.change_5d)}
             </div>
           </div>
-          <div style={{ padding: "8px", background: "var(--bg)", borderRadius: "6px" }}>
-            <div style={{ fontSize: "10px", color: "var(--ink-500)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>30 jours</div>
+          <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>30 jours</div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.change_30d) }}>
               {fmtPct(pc.change_30d)}
             </div>
@@ -581,41 +582,41 @@ function PriceContextSection({ pc }: { pc: PriceContextData }) {
       </div>
 
       {/* Moyennes mobiles + volume */}
-      <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--ink-100)" }}>
+      <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #e8e6e1" }}>
         <div
           className="mono"
-          style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-500)", marginBottom: "10px" }}
+          style={{ fontSize: "10px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: "#6b6861", marginBottom: "10px" }}
         >
           Moyennes mobiles &amp; volume
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
-          <div style={{ padding: "8px", background: "var(--bg)", borderRadius: "6px" }}>
-            <div style={{ fontSize: "10px", color: "var(--ink-500)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
+          <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
               Prix vs SMA 50
             </div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.price_vs_sma50) }}>
               {fmtPct(pc.price_vs_sma50)}
             </div>
-            <div style={{ fontSize: "10px", color: "var(--ink-500)", marginTop: "2px" }}>
+            <div style={{ fontSize: "10px", color: "#6b6861", marginTop: "2px" }}>
               SMA 50 : {fmtPrice(pc.sma_50)}
             </div>
           </div>
-          <div style={{ padding: "8px", background: "var(--bg)", borderRadius: "6px" }}>
-            <div style={{ fontSize: "10px", color: "var(--ink-500)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
+          <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px" }}>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
               Prix vs SMA 200
             </div>
             <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: changeColor(pc.price_vs_sma200) }}>
               {fmtPct(pc.price_vs_sma200)}
             </div>
-            <div style={{ fontSize: "10px", color: "var(--ink-500)", marginTop: "2px" }}>
+            <div style={{ fontSize: "10px", color: "#6b6861", marginTop: "2px" }}>
               SMA 200 : {fmtPrice(pc.sma_200)}
             </div>
           </div>
-          <div style={{ padding: "8px", background: "var(--bg)", borderRadius: "6px", gridColumn: "1 / -1" }}>
-            <div style={{ fontSize: "10px", color: "var(--ink-500)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
+          <div style={{ padding: "8px", background: "#faf9f7", borderRadius: "6px", gridColumn: "1 / -1" }}>
+            <div style={{ fontSize: "10px", color: "#6b6861", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>
               Volume vs moyenne 50j
             </div>
-            <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink-900)" }}>
+            <div className="mono" style={{ fontSize: "14px", fontWeight: 500, color: "#1a1917" }}>
               {fmtVolumeRatio(pc.volume_ratio)}
             </div>
           </div>
@@ -638,15 +639,16 @@ export default async function TechnicalPage({ params }: PageProps) {
     data = await getStockTechnical(symbolUpper);
   } catch (err) {
     return (
-      <div className="clikxia-app">
-        <div style={{ maxWidth: "440px", margin: "0 auto", padding: "60px 20px" }}>
-          <Link href="/dashboard" style={{ color: "var(--ink-500)", fontSize: "14px" }}>
+      <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
+      <SiteHeader compact />
+      <div style={{ maxWidth: "560px", margin: "0 auto", padding: "20px" }}>
+          <Link href="/dashboard" style={{ color: "#6b6861", fontSize: "14px" }}>
             &larr; Retour
           </Link>
           <h1 className="display-lg" style={{ marginTop: "24px" }}>
             Donnees non disponibles
           </h1>
-          <p style={{ color: "var(--ink-500)", marginTop: "12px", fontSize: "14px" }}>
+          <p style={{ color: "#6b6861", marginTop: "12px", fontSize: "14px" }}>
             Impossible de charger les donnees techniques pour {symbolUpper}.
           </p>
         </div>
@@ -656,15 +658,16 @@ export default async function TechnicalPage({ params }: PageProps) {
 
   if (data.error) {
     return (
-      <div className="clikxia-app">
-        <div style={{ maxWidth: "440px", margin: "0 auto", padding: "60px 20px" }}>
-          <Link href="/dashboard" style={{ color: "var(--ink-500)", fontSize: "14px" }}>
+      <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
+      <SiteHeader compact />
+      <div style={{ maxWidth: "560px", margin: "0 auto", padding: "20px" }}>
+          <Link href="/dashboard" style={{ color: "#6b6861", fontSize: "14px" }}>
             &larr; Retour
           </Link>
           <h1 className="display-lg" style={{ marginTop: "24px" }}>
             {symbolUpper} non trouve
           </h1>
-          <p style={{ color: "var(--ink-500)", marginTop: "12px", fontSize: "14px" }}>
+          <p style={{ color: "#6b6861", marginTop: "12px", fontSize: "14px" }}>
             {data.error}
           </p>
         </div>
@@ -694,8 +697,8 @@ export default async function TechnicalPage({ params }: PageProps) {
       <div style={{ maxWidth: "440px", margin: "0 auto", minHeight: "100vh" }}>
 
         {/* Navigation */}
-        <div style={{ padding: "48px 20px 8px", background: "var(--surface)" }}>
-          <Link href={`/dashboard/${data.symbol}`} style={{ color: "var(--ink-500)", fontSize: "14px" }}>
+        <div style={{ padding: "48px 20px 8px", background: "#ffffff" }}>
+          <Link href={`/dashboard/${data.symbol}`} style={{ color: "#6b6861", fontSize: "14px" }}>
             &larr; Vue simple
           </Link>
         </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getTop5, TopStock, Recommendation, recoLabel } from "@/lib/api";
-import SignalBar from "@/app/components/SignalBar";
+import { getTop5 } from "@/lib/api";
+import SiteHeader from "@/app/components/SiteHeader";
 import Disclaimer from "@/app/components/Disclaimer";
 
 export const revalidate = 300;
@@ -9,221 +9,298 @@ interface PageProps {
   params: Promise<{ symbol: string }>;
 }
 
-const DECISION_COLORS: Record<Recommendation, { bg: string; label: string }> = {
-  STRONG_BUY:  { bg: "linear-gradient(135deg, var(--success-500) 0%, #2F855A 100%)", label: "Décision du jour" },
-  BUY:         { bg: "linear-gradient(135deg, var(--success-500) 0%, #38A169 100%)", label: "Décision du jour" },
-  HOLD:        { bg: "linear-gradient(135deg, var(--warning-500) 0%, #B7791F 100%)", label: "Décision du jour" },
-  SELL:        { bg: "linear-gradient(135deg, var(--danger-500) 0%, #C53030 100%)", label: "Décision du jour" },
-  STRONG_SELL: { bg: "linear-gradient(135deg, var(--danger-500) 0%, #9B2C2C 100%)", label: "Décision du jour" },
-};
-
-function buildExplanation(stock: TopStock): string {
-  const mom = stock.signals.momentum_12_1.percentile;
-  const prox = stock.signals.proximity_52w_high.percentile;
-  const vol = stock.signals.volume_abnormal.percentile;
-
-  const parts: string[] = [];
-
-  if (prox >= 90) parts.push(`proche de son plus haut annuel (${prox.toFixed(0)}%)`);
-  else if (prox >= 70) parts.push(`en bonne position par rapport à son plus haut annuel (${prox.toFixed(0)}%)`);
-
-  if (mom >= 90) parts.push("un momentum très fort");
-  else if (mom >= 70) parts.push("un momentum solide");
-  else if (mom < 30) parts.push("un momentum faible");
-
-  if (vol >= 90) parts.push("un volume d'échanges exceptionnel");
-  else if (vol >= 70) parts.push("un volume d'échanges supérieur à la moyenne");
-
-  if (parts.length === 0) {
-    return "Les signaux actuels sont mitigés pour cette action.";
-  }
-
-  return `Cette action est ${parts.join(", avec ")}. Les trois signaux convergent vers cette analyse.`;
-}
-
-export default async function StockDetailPage({ params }: PageProps) {
+export default async function StockSimplePage({ params }: PageProps) {
   const { symbol } = await params;
   const symbolUpper = symbol.toUpperCase();
 
-  const top5Data = await getTop5();
-  const stock = top5Data.top5.find((s) => s.symbol === symbolUpper);
+  const top5Data = await getTop5().catch(() => null);
+  const stock = top5Data?.top5.find((s) => s.symbol === symbolUpper);
 
   if (!stock) {
     return (
-      <div className="clikxia-app">
-        <div style={{ maxWidth: "440px", margin: "0 auto", padding: "60px 20px" }}>
-          <Link href="/dashboard" style={{ color: "var(--ink-500)", fontSize: "14px" }}>
-            ← Retour
+      <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
+        <SiteHeader compact />
+        <div style={{ maxWidth: "560px", margin: "0 auto", padding: "20px" }}>
+          <Link href="/dashboard" style={{ color: "#6b6861", fontSize: "14px", textDecoration: "none" }}>
+            &larr; Retour au dashboard
           </Link>
-          <h1 className="display-lg" style={{ marginTop: "24px" }}>
-            Action non trouvée
+          <h1 style={{
+            fontFamily: "var(--font-serif, serif)",
+            fontSize: "28px",
+            marginTop: "20px",
+            color: "#1a1917",
+          }}>
+            {symbolUpper} non trouve
           </h1>
-          <p className="body-md text-ink-700" style={{ marginTop: "12px" }}>
-            L'action <strong>{symbolUpper}</strong> n'est pas dans le Top 5 du jour.
-            Les données détaillées par action seront bientôt disponibles.
+          <p style={{ color: "#6b6861", fontSize: "14px", marginTop: "8px" }}>
+            Cette action ne fait pas partie du top 5 du jour.
           </p>
         </div>
       </div>
     );
   }
 
-  const colors = DECISION_COLORS[stock.recommendation];
+  const recoClass =
+    stock.recommendation === "HOLD"
+      ? "hold"
+      : stock.recommendation === "SELL" || stock.recommendation === "STRONG_SELL"
+      ? "sell"
+      : "buy";
+
+  // Texte du "Pourquoi" (derive des signaux)
+  const momPct = Math.round(stock.signals.momentum_12_1.percentile);
+  const proxPct = Math.round(stock.signals.proximity_52w_high.percentile);
+  const volPct = Math.round(stock.signals.volume_abnormal.percentile);
+
+  const reasons: string[] = [];
+  if (proxPct >= 80) reasons.push(`proche de son plus haut annuel (${proxPct}e percentile)`);
+  if (momPct >= 80) reasons.push("avec un momentum fort");
+  if (volPct >= 80) reasons.push("avec un volume d&rsquo;echanges eleve");
+  const reasonText = reasons.length > 0
+    ? `Cette action est ${reasons.join(", ")}. Les trois signaux convergent vers cette analyse.`
+    : "Les trois signaux de cette action convergent vers cette analyse.";
 
   return (
-    <div className="clikxia-app">
-      <div style={{ maxWidth: "440px", margin: "0 auto", minHeight: "100vh" }}>
+    <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
+      <SiteHeader compact />
 
-        <div style={{ padding: "48px 20px 8px", background: "var(--surface)" }}>
-          <Link
-            href="/dashboard"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              color: "var(--ink-500)",
-              fontSize: "14px",
-            }}
-          >
-            ← Retour
-          </Link>
+      <div className="simple-container">
+        <style>{`
+          .simple-container {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+          }
+          @media (min-width: 768px) {
+            .simple-container {
+              max-width: 640px;
+              padding: 0 32px 48px;
+            }
+          }
+
+          .back-link {
+            display: inline-block;
+            color: #6b6861;
+            font-size: 14px;
+            text-decoration: none;
+            margin-bottom: 16px;
+          }
+          .back-link:hover { color: #1a1917; }
+
+          .hero {
+            background: #ffffff;
+            border: 1px solid #e8e6e1;
+            border-radius: 12px;
+            padding: 28px 24px;
+            text-align: center;
+            margin-bottom: 24px;
+          }
+          @media (min-width: 768px) {
+            .hero { padding: 36px 32px; }
+          }
+
+          .hero-rank {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #6b6861;
+            font-family: var(--font-mono, monospace);
+            margin-bottom: 8px;
+          }
+          .hero-symbol {
+            font-family: var(--font-serif, "Fraunces", serif);
+            font-size: 44px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            color: #1a1917;
+            margin-bottom: 16px;
+          }
+          @media (min-width: 768px) {
+            .hero-symbol { font-size: 56px; }
+          }
+
+          .hero-decision-label {
+            font-size: 10px;
+            color: #6b6861;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-family: var(--font-mono, monospace);
+            margin-bottom: 8px;
+          }
+          .hero-reco {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-family: var(--font-mono, monospace);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            margin-bottom: 12px;
+            background: #e8f3ea;
+            color: #2d7a3e;
+          }
+          .hero-reco.hold { background: #f5ecd9; color: #9a7628; }
+          .hero-reco.sell { background: #f5e4e4; color: #b93b3b; }
+
+          .hero-score {
+            font-family: var(--font-mono, monospace);
+            font-size: 16px;
+            color: #1a1917;
+            font-weight: 600;
+          }
+
+          .section-title {
+            font-family: var(--font-serif, "Fraunces", serif);
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1917;
+            margin-bottom: 14px;
+            letter-spacing: -0.01em;
+          }
+
+          .why-card {
+            background: #ffffff;
+            border: 1px solid #e8e6e1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #3d3a36;
+          }
+
+          .signals-list {
+            background: #ffffff;
+            border: 1px solid #e8e6e1;
+            border-radius: 10px;
+            padding: 8px 20px;
+            margin-bottom: 24px;
+          }
+          .signal-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #e8e6e1;
+          }
+          .signal-row:last-child { border-bottom: none; }
+          .signal-main {
+            display: flex;
+            flex-direction: column;
+          }
+          .signal-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1917;
+            margin-bottom: 3px;
+          }
+          .signal-desc {
+            font-size: 12px;
+            color: #6b6861;
+          }
+          .signal-value-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          .signal-bar-wrap {
+            width: 80px;
+            height: 4px;
+            background: #e8e6e1;
+            border-radius: 2px;
+            overflow: hidden;
+          }
+          .signal-bar {
+            height: 100%;
+            background: #1a1917;
+            border-radius: 2px;
+          }
+          .signal-pct {
+            font-family: var(--font-mono, monospace);
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1917;
+            min-width: 36px;
+            text-align: right;
+          }
+
+          .technical-cta {
+            display: block;
+            text-align: center;
+            padding: 16px 20px;
+            background: #1a1917;
+            color: #faf9f7;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-family: var(--font-mono, monospace);
+            letter-spacing: 0.02em;
+            transition: opacity 0.15s;
+          }
+          .technical-cta:hover { opacity: 0.9; }
+        `}</style>
+
+        <Link href="/dashboard" className="back-link">&larr; Retour au top 5</Link>
+
+        <div className="hero">
+          <div className="hero-rank">Rang #{stock.rank} du jour</div>
+          <div className="hero-symbol">{stock.symbol}</div>
+          <div className="hero-decision-label">Decision du jour</div>
+          <div className={`hero-reco ${recoClass}`}>{stock.recommendation.replace("_", " ")}</div>
+          <div className="hero-score">{stock.composite_score.toFixed(1)} / 100</div>
         </div>
 
-        <div style={{ padding: "8px 20px 20px", background: "var(--surface)" }}>
-          <div
-            className="display-xl"
-            style={{
-              fontSize: "36px",
-              color: "var(--ink-900)",
-              lineHeight: 1,
-              marginBottom: "4px",
-            }}
-          >
-            {stock.symbol}
+        <h2 className="section-title">Pourquoi ?</h2>
+        <div className="why-card">
+          {reasonText}
+        </div>
+
+        <h2 className="section-title">Les 3 signaux</h2>
+        <div className="signals-list">
+          <div className="signal-row">
+            <div className="signal-main">
+              <div className="signal-name">Momentum</div>
+              <div className="signal-desc">Force de la tendance sur 12 mois</div>
+            </div>
+            <div className="signal-value-wrap">
+              <div className="signal-bar-wrap">
+                <div className="signal-bar" style={{ width: `${momPct}%` }} />
+              </div>
+              <div className="signal-pct">{momPct}</div>
+            </div>
           </div>
-          <div style={{ fontSize: "14px", color: "var(--ink-500)", marginBottom: "16px" }}>
-            Rang #{stock.rank} du jour
+          <div className="signal-row">
+            <div className="signal-main">
+              <div className="signal-name">Proximite 52 semaines</div>
+              <div className="signal-desc">Distance au plus haut annuel</div>
+            </div>
+            <div className="signal-value-wrap">
+              <div className="signal-bar-wrap">
+                <div className="signal-bar" style={{ width: `${proxPct}%` }} />
+              </div>
+              <div className="signal-pct">{proxPct}</div>
+            </div>
+          </div>
+          <div className="signal-row">
+            <div className="signal-main">
+              <div className="signal-name">Volume anormal</div>
+              <div className="signal-desc">Attention nouvelle du marche</div>
+            </div>
+            <div className="signal-value-wrap">
+              <div className="signal-bar-wrap">
+                <div className="signal-bar" style={{ width: `${volPct}%` }} />
+              </div>
+              <div className="signal-pct">{volPct}</div>
+            </div>
           </div>
         </div>
 
-        <div
-          style={{
-            margin: "0 20px",
-            padding: "28px 24px",
-            background: colors.bg,
-            borderRadius: "var(--r-lg)",
-            color: "white",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "var(--font-mono), monospace",
-              fontSize: "11px",
-              fontWeight: 500,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              opacity: 0.85,
-              marginBottom: "8px",
-            }}
-          >
-            {colors.label}
-          </div>
-          <div
-            className="display-xl"
-            style={{
-              fontSize: "42px",
-              color: "white",
-              lineHeight: 1,
-              marginBottom: "16px",
-            }}
-          >
-            {recoLabel(stock.recommendation)}
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-            <span
-              style={{
-                fontFamily: "var(--font-mono), monospace",
-                fontSize: "22px",
-                fontWeight: 600,
-              }}
-            >
-              {stock.composite_score.toFixed(0)}
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-mono), monospace",
-                fontSize: "13px",
-                opacity: 0.75,
-              }}
-            >
-              / 100
-            </span>
-          </div>
-        </div>
-
-        <div style={{ padding: "24px 20px 20px" }}>
-          <div
-            className="display-md"
-            style={{ fontSize: "18px", marginBottom: "10px" }}
-          >
-            Pourquoi ?
-          </div>
-          <div style={{ fontSize: "14px", lineHeight: 1.6, color: "var(--ink-700)" }}>
-            {buildExplanation(stock)}
-          </div>
-        </div>
-
-        <div
-          style={{
-            padding: "16px 20px 20px",
-            background: "var(--surface)",
-            borderTop: "1px solid var(--ink-100)",
-          }}
-        >
-          <div
-            className="display-md"
-            style={{ fontSize: "16px", marginBottom: "16px" }}
-          >
-            Les 3 signaux
-          </div>
-
-          <SignalBar
-            name="Momentum"
-            description="Force de la tendance sur 12 mois"
-            percentile={stock.signals.momentum_12_1.percentile}
-          />
-          <SignalBar
-            name="Proximité 52 semaines"
-            description="Distance au plus haut annuel"
-            percentile={stock.signals.proximity_52w_high.percentile}
-          />
-          <SignalBar
-            name="Volume anormal"
-            description="Attention nouvelle du marché"
-            percentile={stock.signals.volume_abnormal.percentile}
-          />
-        </div>
-
-        <div style={{ margin: "0 20px 24px" }}>
-          <Link
-            href={`/dashboard/${stock.symbol}/technical`}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "14px 16px",
-              background: "var(--brand-50)",
-              borderRadius: "var(--r-md)",
-              color: "var(--brand-700)",
-              fontSize: "13px",
-              fontWeight: 500,
-            }}
-          >
-            <span>Voir l'analyse technique détaillée</span>
-            <span>→</span>
-          </Link>
-        </div>
+        <Link href={`/dashboard/${stock.symbol}/technical`} className="technical-cta">
+          Voir l&rsquo;analyse technique detaillee &rarr;
+        </Link>
 
         <Disclaimer />
       </div>
