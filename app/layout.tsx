@@ -81,8 +81,7 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
   },
   verification: {
-    // Rempli plus tard apres validation Google Search Console
-    // google: "XXXXX",
+    google: "CZAzGwkkdUrtaQdCY6nV8pdELkhl_7yEB5bmIr4w-40",
   },
 };
 
