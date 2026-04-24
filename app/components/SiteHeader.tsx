@@ -64,9 +64,15 @@ export default async function SiteHeader({ compact = false }: Props) {
           background: #ffffff;
         }
         @media (max-width: 500px) {
+          .site-header-actions {
+            position: static;
+            justify-content: center;
+            margin-bottom: 16px;
+            padding: 0 12px;
+          }
           .header-contact-link {
             font-size: 10px;
-            padding: 6px 7px;
+            padding: 6px 8px;
             letter-spacing: 0.04em;
           }
         }
