@@ -11,7 +11,7 @@ import type { NextRequest } from "next/server";
  *
  * Le cookie `clikxia_lead` est pose par POST /api/waitlist.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const leadCookie = request.cookies.get("clikxia_lead");
   const hasAccess = leadCookie?.value === "1";
