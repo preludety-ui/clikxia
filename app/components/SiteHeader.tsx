@@ -65,6 +65,13 @@ export default async function SiteHeader({ compact = false }: Props) {
         }
         @media (max-width: 500px) {
           .header-contact-link {
+            font-size: 10px;
+            padding: 6px 7px;
+            letter-spacing: 0.04em;
+          }
+        }
+        @media (max-width: 360px) {
+          .header-contact-link {
             display: none;
           }
         }
