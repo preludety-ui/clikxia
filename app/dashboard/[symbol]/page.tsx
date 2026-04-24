@@ -4,6 +4,7 @@ import { detectLang } from "@/lib/lang";
 import { t } from "@/lib/i18n";
 import SiteHeader from "@/app/components/SiteHeader";
 import Disclaimer from "@/app/components/Disclaimer";
+import TrackPageView from "@/app/components/TrackPageView";
 
 export const revalidate = 300;
 
@@ -70,6 +71,7 @@ export default async function StockSimplePage({ params }: PageProps) {
   return (
     <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
       <SiteHeader compact />
+      <TrackPageView event="stock_viewed" properties={{ symbol: symbolUpper, lang }} />
 
       <div className="simple-container">
         <style>{`

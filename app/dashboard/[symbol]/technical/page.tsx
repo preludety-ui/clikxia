@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getStockTechnical, recoLabel } from "@/lib/api";
 import Disclaimer from "@/app/components/Disclaimer";
 import SiteHeader from "@/app/components/SiteHeader";
+import TrackPageView from "@/app/components/TrackPageView";
 import { detectLang } from "@/lib/lang";
 import { t, type Lang } from "@/lib/i18n";
 import type {
@@ -702,6 +703,7 @@ export default async function TechnicalPage({ params }: PageProps) {
   return (
     <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
       <SiteHeader compact />
+      <TrackPageView event="technical_viewed" properties={{ symbol: symbolUpper, lang }} />
       <div className="technical-container">
         <style>{`
           .technical-container {

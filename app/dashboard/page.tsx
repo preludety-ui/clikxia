@@ -4,6 +4,7 @@ import { detectLang } from "@/lib/lang";
 import { t } from "@/lib/i18n";
 import SiteHeader from "@/app/components/SiteHeader";
 import Disclaimer from "@/app/components/Disclaimer";
+import TrackPageView from "@/app/components/TrackPageView";
 
 export const revalidate = 300;
 
@@ -20,6 +21,7 @@ export default async function DashboardPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
       <SiteHeader compact />
+      <TrackPageView event="dashboard_viewed" properties={{ lang }} />
 
       <div className="dashboard-container">
         <style>{`

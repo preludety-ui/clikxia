@@ -349,22 +349,45 @@ export default function AdminPage() {
               Derniere mise a jour : {formatDate(metrics.generated_at)}
             </div>
           </div>
-          <button
-            onClick={fetchMetrics}
-            disabled={metricsLoading}
-            style={{
-              padding: "8px 16px",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "#1a1917",
-              background: "#ffffff",
-              border: "1px solid #e8e6e1",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            {metricsLoading ? "..." : "Rafraichir"}
-          </button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <a
+              href="https://vercel.com/preludety-uis-projects/clikxia/analytics"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: "8px 16px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#0A8B5C",
+                background: "#e8f3ea",
+                border: "1px solid #0A8B5C",
+                borderRadius: "6px",
+                cursor: "pointer",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              Trafic detaille
+            </a>
+            <button
+              onClick={fetchMetrics}
+              disabled={metricsLoading}
+              style={{
+                padding: "8px 16px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#1a1917",
+                background: "#ffffff",
+                border: "1px solid #e8e6e1",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              {metricsLoading ? "..." : "Rafraichir"}
+            </button>
+          </div>
         </div>
 
         {/* ==== SECTION 1 : Cartes KPI principales ==== */}
