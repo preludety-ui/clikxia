@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Backup files
 *.backup
+
+# Artefact intermediaire du guide (regenere via scripts/build_guide_html.py)
+scripts/guide.html

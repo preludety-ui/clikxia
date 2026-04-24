@@ -110,6 +110,9 @@ export default async function SiteHeader({ compact = false }: Props) {
       `}</style>
 
       <div className="site-header-actions">
+        <Link href="/guide" className="header-contact-link">
+          {t(lang, "guide_link")}
+        </Link>
         <Link href="/contact" className="header-contact-link">
           {t(lang, "contact_link")}
         </Link>
