@@ -64,6 +64,8 @@ export const translations = {
 
     // Stock simple view
     rank_of_day: "Rang #{0} du jour",
+    market_cap_label: "Cap. boursiere",
+    shares_label: "Actions en circulation",
     decision_of_day: "D\u00e9cision du jour",
     why: "Pourquoi ?",
     three_signals: "Les 3 signaux",
@@ -234,6 +236,8 @@ export const translations = {
 
     // Stock simple view
     rank_of_day: "Rank #{0} of the day",
+    market_cap_label: "Market cap",
+    shares_label: "Shares outstanding",
     decision_of_day: "Today\u2019s decision",
     why: "Why?",
     three_signals: "The 3 signals",

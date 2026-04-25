@@ -3,6 +3,7 @@ import { getStockTechnical, recoLabel } from "@/lib/api";
 import Disclaimer from "@/app/components/Disclaimer";
 import SiteHeader from "@/app/components/SiteHeader";
 import TrackPageView from "@/app/components/TrackPageView";
+import { formatMarketCap, formatShares } from "@/lib/formatters";
 import { detectLang } from "@/lib/lang";
 import { t, type Lang } from "@/lib/i18n";
 import type {
@@ -759,6 +760,73 @@ export default async function TechnicalPage({ params }: PageProps) {
           profileLabel={profile?.label ?? null}
           profileColor={profile?.color ?? null}
         />
+        {/* Bloc Company Info enrichi (nom + cap + shares) */}
+        {data.company_name && (
+          <div style={{
+            background: "#ffffff",
+            padding: "16px 20px",
+            marginBottom: "16px",
+            borderTop: "1px solid #e8e6e1",
+            borderBottom: "1px solid #e8e6e1",
+          }}>
+            <div style={{
+              fontSize: "15px",
+              color: "#1a1917",
+              fontWeight: 500,
+              marginBottom: "12px",
+            }}>
+              {data.company_name}
+            </div>
+            {(data.market_cap || data.shares_outstanding) && (
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 0,
+              }}>
+                <div style={{ paddingRight: "12px", borderRight: "1px solid #e8e6e1" }}>
+                  <div style={{
+                    fontSize: "10px",
+                    color: "#6b6861",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    fontFamily: "var(--font-mono), monospace",
+                    marginBottom: "4px",
+                  }}>
+                    {lang === "fr" ? "Cap. boursiere" : "Market cap"}
+                  </div>
+                  <div style={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    color: "#1a1917",
+                    fontFamily: "var(--font-mono), monospace",
+                  }}>
+                    {formatMarketCap(data.market_cap)}
+                  </div>
+                </div>
+                <div style={{ paddingLeft: "12px" }}>
+                  <div style={{
+                    fontSize: "10px",
+                    color: "#6b6861",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    fontFamily: "var(--font-mono), monospace",
+                    marginBottom: "4px",
+                  }}>
+                    {lang === "fr" ? "Actions en circulation" : "Shares outstanding"}
+                  </div>
+                  <div style={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    color: "#1a1917",
+                    fontFamily: "var(--font-mono), monospace",
+                  }}>
+                    {formatShares(data.shares_outstanding)}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Signaux CLIKXIA */}
         <SectionTitle title={t(lang, "signaux_clikxia")} subtitle={t(lang, "signaux_subtitle")} />

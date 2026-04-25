@@ -33,6 +33,9 @@ export interface SignalValue {
 export interface TopStock {
   rank: number;
   symbol: string;
+  company_name?: string | null;
+  market_cap?: number | null;
+  shares_outstanding?: number | null;
   composite_score: number;
   recommendation: Recommendation;
   scanner_version: string;
@@ -113,6 +116,9 @@ export interface PriceContextData {
 
 export interface StockTechnicalResponse {
   symbol: string;
+  company_name?: string | null;
+  market_cap?: number | null;
+  shares_outstanding?: number | null;
   scan_date: string;
   recommendation: Recommendation | null;
   market_regime: MarketRegime | null;

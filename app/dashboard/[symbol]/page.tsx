@@ -5,6 +5,7 @@ import { t } from "@/lib/i18n";
 import SiteHeader from "@/app/components/SiteHeader";
 import Disclaimer from "@/app/components/Disclaimer";
 import TrackPageView from "@/app/components/TrackPageView";
+import { formatMarketCap, formatShares } from "@/lib/formatters";
 
 export const revalidate = 300;
 
@@ -128,6 +129,54 @@ export default async function StockSimplePage({ params }: PageProps) {
           }
           @media (min-width: 768px) {
             .hero-symbol { font-size: 56px; }
+          }
+
+          .hero-company {
+            font-size: 14px;
+            color: #6b6861;
+            font-weight: 400;
+            margin-top: -10px;
+            margin-bottom: 18px;
+            line-height: 1.3;
+            padding: 0 12px;
+          }
+          @media (min-width: 768px) {
+            .hero-company { font-size: 16px; }
+          }
+
+          .hero-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            margin: -4px -8px 18px;
+            padding: 12px 0;
+            border-top: 1px solid #e8e6e1;
+            border-bottom: 1px solid #e8e6e1;
+          }
+          .hero-meta-cell {
+            text-align: center;
+            padding: 0 8px;
+          }
+          .hero-meta-cell + .hero-meta-cell {
+            border-left: 1px solid #e8e6e1;
+          }
+          .hero-meta-label {
+            font-size: 9px;
+            color: #6b6861;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-family: var(--font-mono, monospace);
+            margin-bottom: 4px;
+          }
+          .hero-meta-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1917;
+            font-family: var(--font-mono, monospace);
+          }
+          @media (min-width: 768px) {
+            .hero-meta-label { font-size: 10px; }
+            .hero-meta-value { font-size: 16px; }
           }
 
           .hero-decision-label {
@@ -259,6 +308,21 @@ export default async function StockSimplePage({ params }: PageProps) {
         <div className="hero">
           <div className="hero-rank">{t(lang, "rank_of_day", stock.rank)}</div>
           <div className="hero-symbol">{stock.symbol}</div>
+          {stock.company_name && (
+            <div className="hero-company">{stock.company_name}</div>
+          )}
+          {(stock.market_cap || stock.shares_outstanding) && (
+            <div className="hero-meta">
+              <div className="hero-meta-cell">
+                <div className="hero-meta-label">{t(lang, "market_cap_label")}</div>
+                <div className="hero-meta-value">{formatMarketCap(stock.market_cap)}</div>
+              </div>
+              <div className="hero-meta-cell">
+                <div className="hero-meta-label">{t(lang, "shares_label")}</div>
+                <div className="hero-meta-value">{formatShares(stock.shares_outstanding)}</div>
+              </div>
+            </div>
+          )}
           <div className="hero-decision-label">{t(lang, "decision_of_day")}</div>
           <div className={`hero-reco ${recoClass}`}>{stock.recommendation.replace("_", " ")}</div>
           <div className="hero-score">{stock.composite_score.toFixed(1)} / 100</div>

@@ -172,6 +172,20 @@ export default async function DashboardPage() {
             color: #1a1917;
           }
 
+          .stock-company {
+            font-size: 12px;
+            color: #6b6861;
+            font-weight: 400;
+            margin-top: -4px;
+            margin-bottom: 12px;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          @media (min-width: 768px) {
+            .stock-company { font-size: 13px; }
+          }
           .stock-signals {
             padding-top: 14px;
             border-top: 1px solid #e8e6e1;
@@ -214,6 +228,9 @@ export default async function DashboardPage() {
               <Link key={stock.symbol} href={`/dashboard/${stock.symbol}`} className="stock-card">
                 <div className="stock-rank">{t(lang, "rank")} {stock.rank}</div>
                 <div className="stock-symbol">{stock.symbol}</div>
+                {stock.company_name && (
+                  <div className="stock-company">{stock.company_name}</div>
+                )}
                 <div className="stock-reco-row">
                   <span className={`stock-reco ${recoClass}`}>{stock.recommendation.replace("_", " ")}</span>
                   <span className="stock-score">{stock.composite_score.toFixed(1)} / 100</span>
