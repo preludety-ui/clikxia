@@ -18,6 +18,17 @@ export type Recommendation =
 
 export type MarketRegime = "BULL" | "NEUTRAL" | "BEAR" | "PANIC" | "UNKNOWN";
 
+// === Hidden Gem v2.0 (Loh-Stulz 2011 + EFMA 2014) ===
+export type PersistenceStatus =
+  | "STRONG_BUY_INFLUENTIAL"   // z>1.96 sur 2 jours consecutifs
+  | "STRONG_BUY_PRELIMINARY"   // z>1.96 jour J seulement
+  | "BUY_NEUTRAL"              // 0 < z <= 1.96
+  | "WATCH_SIGNAL_DECAY"       // -1.96 <= z <= 0
+  | "SELL_REVERSAL"            // z < -1.96 sur 2 jours consecutifs
+  | "INSUFFICIENT_HISTORY";    // donnees manquantes
+
+export type Methodology = "hidden_gem_v2" | "composite_score_v1";
+
 export interface RegimeResponse {
   scan_date: string;
   regime: MarketRegime;
@@ -39,6 +50,10 @@ export interface TopStock {
   composite_score: number;
   recommendation: Recommendation;
   scanner_version: string;
+  // === Hidden Gem v2.0 (optionnels - peuvent etre null en mode fallback v1) ===
+  z_score?: number | null;
+  z_score_yesterday?: number | null;
+  persistence_status?: PersistenceStatus | null;
   signals: {
     momentum_12_1: SignalValue;
     proximity_52w_high: SignalValue;
@@ -50,6 +65,10 @@ export interface Top5Response {
   scan_date: string;
   regime: MarketRegime;
   top5: TopStock[];
+  // === Hidden Gem v2.0 (optionnels - presents si methodology = hidden_gem_v2) ===
+  methodology?: Methodology;
+  influential_count?: number;
+  preliminary_count?: number;
 }
 
 export interface Candidate {

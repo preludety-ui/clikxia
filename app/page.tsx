@@ -22,6 +22,31 @@ async function fetchCount(): Promise<number> {
   }
 }
 
+// Helper : determine le badge a afficher selon persistence_status
+function getStatusBadge(persistenceStatus: string | null | undefined, recommendation: string) {
+  // Mode v2.0 - Hidden Gem
+  if (persistenceStatus === "STRONG_BUY_INFLUENTIAL") {
+    return {
+      label: "INFLUENTIAL",
+      className: "top5-reco top5-reco-influential",
+      tooltip: "Confirmed signal across 2 consecutive sessions (Loh-Stulz 2011)",
+    };
+  }
+  if (persistenceStatus === "STRONG_BUY_PRELIMINARY") {
+    return {
+      label: "PRELIMINARY",
+      className: "top5-reco top5-reco-preliminary",
+      tooltip: "Strong signal detected today, awaiting confirmation (Loh-Stulz 2011)",
+    };
+  }
+  // Mode fallback v1 - on garde l'ancien rendu
+  return {
+    label: recommendation.replace("_", " "),
+    className: "top5-reco top5-reco-default",
+    tooltip: null,
+  };
+}
+
 export default async function LandingPage() {
   const [top5Data, count, lang] = await Promise.all([
     getTop5().catch(() => null),
@@ -31,6 +56,8 @@ export default async function LandingPage() {
 
   const top5 = top5Data?.top5 || [];
   const regime = top5Data?.regime || "NEUTRAL";
+  const methodology = top5Data?.methodology || "composite_score_v1";
+  const isHiddenGemMode = methodology === "hidden_gem_v2";
 
   return (
     <div className="clikxia-landing">
@@ -127,6 +154,8 @@ export default async function LandingPage() {
         @media (min-width: 768px) {
           .top5-score-block { gap: 14px; }
         }
+
+        /* Badge de recommandation - 3 variantes */
         .top5-reco {
           font-size: 10px;
           font-weight: 600;
@@ -134,15 +163,58 @@ export default async function LandingPage() {
           padding: 3px 8px;
           border-radius: 4px;
           font-family: var(--font-mono, monospace);
+          cursor: help;
+        }
+        .top5-reco-default {
           background: #e8f3ea;
           color: #2d7a3e;
         }
+        /* INFLUENTIAL : vert plus profond, signal confirme */
+        .top5-reco-influential {
+          background: #d4e8d8;
+          color: #1f5d2e;
+          border: 1px solid #b8d4be;
+        }
+        /* PRELIMINARY : bleu, signal en attente confirmation */
+        .top5-reco-preliminary {
+          background: #e6eef5;
+          color: #2c5282;
+          border: 1px solid #c7d8e6;
+        }
+
+        /* Z-score - mono, discret */
+        .top5-zscore {
+          font-family: var(--font-mono, monospace);
+          font-size: 11px;
+          color: #6b6861;
+          font-weight: 500;
+          min-width: 56px;
+          text-align: right;
+        }
+
         .top5-score {
           font-family: var(--font-mono, monospace);
           font-size: 14px;
           font-weight: 500;
           color: #1a1917;
           min-width: 44px;
+        }
+
+        /* Footer methodologie - subtil */
+        .top5-methodology {
+          margin-top: 12px;
+          padding-top: 10px;
+          border-top: 1px dashed #e8e6e1;
+          font-size: 10px;
+          color: #8a8680;
+          font-family: var(--font-mono, monospace);
+          text-align: center;
+          letter-spacing: 0.03em;
+        }
+        .top5-methodology a {
+          color: #6b6861;
+          text-decoration: underline;
+          text-underline-offset: 2px;
         }
 
         .hook-section {
@@ -242,16 +314,41 @@ export default async function LandingPage() {
             <span className="top5-regime">{t(lang, "regime_label")} : {regime}</span>
           </div>
           {top5.length > 0 ? (
-            top5.map((stock) => (
-              <div key={stock.symbol} className="top5-row">
-                <span className="top5-rank">{stock.rank}</span>
-                <span className="top5-symbol">{stock.symbol}</span>
-                <div className="top5-score-block">
-                  <span className="top5-reco">{stock.recommendation.replace("_", " ")}</span>
-                  <span className="top5-score">{stock.composite_score.toFixed(1)}</span>
+            <>
+              {top5.map((stock: any) => {
+                const badge = getStatusBadge(stock.persistence_status, stock.recommendation);
+                const zScoreFormatted = stock.z_score !== null && stock.z_score !== undefined
+                  ? `z=${stock.z_score >= 0 ? "+" : ""}${stock.z_score.toFixed(2)}`
+                  : null;
+
+                return (
+                  <div key={stock.symbol} className="top5-row">
+                    <span className="top5-rank">{stock.rank}</span>
+                    <span className="top5-symbol">{stock.symbol}</span>
+                    <div className="top5-score-block">
+                      {zScoreFormatted && (
+                        <span className="top5-zscore" title="Cross-sectional z-score (Haugen-Baker 1996)">
+                          {zScoreFormatted}
+                        </span>
+                      )}
+                      <span
+                        className={badge.className}
+                        title={badge.tooltip || undefined}
+                      >
+                        {badge.label}
+                      </span>
+                      <span className="top5-score">{stock.composite_score.toFixed(1)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+              {/* Footer methodologie - visible uniquement en mode v2 */}
+              {isHiddenGemMode && (
+                <div className="top5-methodology">
+                  Hidden Gem methodology · Loh-Stulz (2011)
                 </div>
-              </div>
-            ))
+              )}
+            </>
           ) : (
             <div style={{ padding: "24px 0", textAlign: "center", color: "#6b6861", fontSize: "13px" }}>
               ...
