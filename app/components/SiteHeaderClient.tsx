@@ -91,6 +91,12 @@ export default function SiteHeaderClient({ lang, compact = false }: Props) {
         }
         @media (max-width: 360px) {
           .header-contact-link { display: none; }
+          .header-mirror-link {
+            display: inline-block;
+            font-size: 9px;
+            padding: 5px 6px;
+            letter-spacing: 0.03em;
+          }
         }
 
         .site-logo {
@@ -132,7 +138,7 @@ export default function SiteHeaderClient({ lang, compact = false }: Props) {
       `}</style>
 
       <div className="site-header-actions-left">
-        <Link href="/the-mirror" className="header-contact-link">
+        <Link href="/the-mirror" className="header-contact-link header-mirror-link">
           {t.mirror_link}
         </Link>
       </div>

@@ -564,35 +564,22 @@ export default function TheMirrorPage() {
           font-family: var(--font-mono, monospace);
         }
 
-        /* Mobile : tableau en cards */
+        /* Mobile : conserve le scroll horizontal (pattern Bloomberg/Yahoo Finance/Refinitiv).
+           Source : research user 2025-2026 - les tableaux financiers complexes (>5 colonnes)
+           privilegient le scroll horizontal au mode card pour preserver la comparabilite
+           ligne par ligne. Avec 13 colonnes, le mode card empile en vertical et perd
+           toute lisibilite. */
         @media (max-width: 767px) {
-          .mirror-table thead { display: none; }
-          .mirror-table, .mirror-table tbody, .mirror-table tr, .mirror-table td {
-            display: block;
-            width: 100%;
+          .mirror-table {
+            min-width: 1500px;
+            font-size: 12px;
           }
-          .mirror-table tbody tr {
-            padding: 14px;
-            border: 1px solid #e8e6e1;
-            border-radius: 10px;
-            margin-bottom: 12px;
+          .mirror-table thead th {
+            padding: 10px 12px;
+            font-size: 9px;
           }
-          .table-wrap { background: transparent; border: none; padding: 0; }
           .mirror-table td {
-            padding: 6px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: none;
-          }
-          .mirror-table td::before {
-            content: attr(data-label);
-            font-size: 10px;
-            font-weight: 600;
-            color: #8a8680;
-            font-family: var(--font-mono, monospace);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            padding: 10px 12px;
           }
         }
       `}</style>

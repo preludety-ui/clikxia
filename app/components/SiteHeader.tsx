@@ -101,6 +101,13 @@ export default async function SiteHeader({ compact = false }: Props) {
           .header-contact-link {
             display: none;
           }
+          /* Le Miroir : fonctionnalite phare, toujours visible meme sur tres petits ecrans */
+          .header-mirror-link {
+            display: inline-block;
+            font-size: 9px;
+            padding: 5px 6px;
+            letter-spacing: 0.03em;
+          }
         }
 
         .site-logo {
@@ -144,7 +151,7 @@ export default async function SiteHeader({ compact = false }: Props) {
       `}</style>
 
       <div className="site-header-actions-left">
-        <Link href="/the-mirror" className="header-contact-link">
+        <Link href="/the-mirror" className="header-contact-link header-mirror-link">
           {t(lang, "mirror_link")}
         </Link>
       </div>
