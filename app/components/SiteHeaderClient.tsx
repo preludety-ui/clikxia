@@ -38,8 +38,26 @@ export default function SiteHeaderClient({ lang, compact = false }: Props) {
           gap: 12px;
           z-index: 10;
         }
+        .site-header-actions-left {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          z-index: 10;
+        }
         @media (min-width: 768px) {
           .site-header-actions { top: 28px; right: 32px; }
+          .site-header-actions-left { top: 28px; left: 32px; }
+        }
+        @media (max-width: 500px) {
+          .site-header-actions-left {
+            position: static;
+            justify-content: center;
+            margin-bottom: 8px;
+            padding: 0 12px;
+          }
         }
 
         .header-contact-link {
@@ -112,6 +130,12 @@ export default function SiteHeaderClient({ lang, compact = false }: Props) {
           letter-spacing: 0.14em;
         }
       `}</style>
+
+      <div className="site-header-actions-left">
+        <Link href="/the-mirror" className="header-contact-link">
+          {t.mirror_link}
+        </Link>
+      </div>
 
       <div className="site-header-actions">
         <Link href="/guide" className="header-contact-link">

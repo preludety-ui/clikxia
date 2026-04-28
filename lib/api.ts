@@ -29,6 +29,31 @@ export type PersistenceStatus =
 
 export type Methodology = "hidden_gem_v2" | "composite_score_v1";
 
+// === The Mirror v1 - Matrice 24 regles (6 dimensions scientifiques) ===
+// Sources peer-reviewed :
+// - Acar-Toffel (2001), Kaminski-Lo (JFSR 2014) - PnL stop-loss / take-profit
+// - Wilcox-Crittenden (2009), Grossman-Zhou (Math.Finance 1993) - Drawdown depuis pic
+// - Han-Zhou-Zhu (JFE 2014) - Overlay momentum crash protection
+// - Clare-Seaton-Smith-Thomas (JAM 2013) - Regime BULL/BEAR/PANIC
+// - Lo-Remorov (2017) - Stop-loss + serial correlation + regime switching
+// - Liu Yuzhen (Pekin 2020), Guo (RFS 2025) - Score deterioration
+// - Nikkei Money (2025), Hashshan (2021) - Duree detention
+// Calibrations CLIKXIA V1 transparentes pour seuils intermediaires (5%, 90j, score delta).
+export type MirrorRecommendation =
+  | "HOLD"
+  | "HOLD_WATCH"
+  | "HOLD_TRAILING"
+  | "TAKE_PROFIT"
+  | "TAKE_PROFIT_TRAILING"
+  | "LOCK_GAINS"
+  | "REVIEW"
+  | "TRIM"
+  | "WARNING"
+  | "TRIM_HEAVY"
+  | "STOP_LOSS"
+  | "EXIT"
+  | "SCENARIO_BROKEN";
+
 export interface RegimeResponse {
   scan_date: string;
   regime: MarketRegime;
@@ -225,6 +250,36 @@ export function recoClass(reco: Recommendation): string {
     HOLD: "reco-hold",
     SELL: "reco-sell",
     STRONG_SELL: "reco-strong-sell",
+  };
+  return classes[reco];
+}
+
+/**
+ * Retourne la classe CSS associee a une recommandation Mirror (13 codes).
+ * Reutilise les 5 classes CSS existantes du design system.
+ *
+ * Mapping valide Phase 0.3 (vocabulaire trading FR) :
+ *   - HOLD / HOLD_WATCH / HOLD_TRAILING       -> reco-buy (vert clair, conserver)
+ *   - TAKE_PROFIT / _TRAILING / LOCK_GAINS    -> reco-strong-buy (vert plein, gain a concretiser)
+ *   - REVIEW / TRIM / WARNING                 -> reco-hold (ambre, surveiller / alleger)
+ *   - TRIM_HEAVY / STOP_LOSS                  -> reco-sell (rouge clair, alleger fortement / couper)
+ *   - EXIT / SCENARIO_BROKEN                  -> reco-strong-sell (rouge plein, sortie immediate)
+ */
+export function mirrorRecoClass(reco: MirrorRecommendation): string {
+  const classes: Record<MirrorRecommendation, string> = {
+    HOLD: "reco-buy",
+    HOLD_WATCH: "reco-buy",
+    HOLD_TRAILING: "reco-buy",
+    TAKE_PROFIT: "reco-strong-buy",
+    TAKE_PROFIT_TRAILING: "reco-strong-buy",
+    LOCK_GAINS: "reco-strong-buy",
+    REVIEW: "reco-hold",
+    TRIM: "reco-hold",
+    WARNING: "reco-hold",
+    TRIM_HEAVY: "reco-sell",
+    STOP_LOSS: "reco-sell",
+    EXIT: "reco-strong-sell",
+    SCENARIO_BROKEN: "reco-strong-sell",
   };
   return classes[reco];
 }
@@ -624,6 +679,13 @@ export interface MirrorTop5Ticker {
   pnl_pct: number;
   spy_pnl_pct_same_window: number | null;
   current_recommendation: Recommendation | null;
+  // === The Mirror v1 - Champs matrice 24 regles ===
+  entry_recommendation: Recommendation | null;
+  drawdown_from_peak_pct: number | null;
+  market_regime: MarketRegime | null;
+  duration_days: number | null;
+  mirror_recommendation: MirrorRecommendation | null;
+  // === Loh-Stulz / score breakdown ===
   z_score: number | null;
   persistence_status: PersistenceStatus | null;
   score_breakdown: MirrorScoreBreakdown;

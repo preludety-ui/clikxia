@@ -12,7 +12,7 @@ interface Props {
   universeSizeText: string;
 }
 
-export default function MirrorSearchBar({ lang, placeholder, helpText, universeSizeText }: Props) {
+export default function UniverseSearchBar({ lang, placeholder, helpText, universeSizeText }: Props) {
   const [universe, setUniverse] = useState<MirrorUniverseTicker[]>([]);
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -51,7 +51,7 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
     : [];
 
   function navigateToTicker(symbol: string) {
-    router.push(`/the-mirror/${symbol.toUpperCase()}`);
+    router.push(`/dashboard/${symbol.toUpperCase()}`);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -74,13 +74,13 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
   }
 
   return (
-    <div ref={containerRef} className="mirror-search-wrapper">
+    <div ref={containerRef} className="universe-search-wrapper">
       <style>{`
-        .mirror-search-wrapper {
+        .universe-search-wrapper {
           position: relative;
           margin-bottom: 28px;
         }
-        .mirror-search-input-wrap {
+        .universe-search-input-wrap {
           display: flex;
           align-items: center;
           background: #ffffff;
@@ -90,10 +90,10 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
           gap: 12px;
           transition: border-color 0.15s;
         }
-        .mirror-search-input-wrap:focus-within {
+        .universe-search-input-wrap:focus-within {
           border-color: #0A8B5C;
         }
-        .mirror-search-input {
+        .universe-search-input {
           flex: 1;
           font-size: 15px;
           color: #1a1917;
@@ -102,14 +102,14 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
           border: none;
           outline: none;
         }
-        .mirror-search-input::placeholder {
+        .universe-search-input::placeholder {
           color: #8a8680;
         }
-        .mirror-search-icon {
+        .universe-search-icon {
           color: #6b6861;
           flex-shrink: 0;
         }
-        .mirror-search-help {
+        .universe-search-help {
           margin-top: 8px;
           font-size: 11px;
           color: #8a8680;
@@ -117,7 +117,7 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
           letter-spacing: 0.04em;
           padding-left: 4px;
         }
-        .mirror-search-dropdown {
+        .universe-search-dropdown {
           position: absolute;
           top: calc(100% + 6px);
           left: 0;
@@ -131,7 +131,7 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
           max-height: 360px;
           overflow-y: auto;
         }
-        .mirror-search-item {
+        .universe-search-item {
           padding: 12px 18px;
           display: flex;
           justify-content: space-between;
@@ -140,19 +140,19 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
           border-bottom: 1px solid #f1efe9;
           transition: background 0.1s;
         }
-        .mirror-search-item:last-child { border-bottom: none; }
-        .mirror-search-item:hover,
-        .mirror-search-item-highlight {
+        .universe-search-item:last-child { border-bottom: none; }
+        .universe-search-item:hover,
+        .universe-search-item-highlight {
           background: #f9f7f1;
         }
-        .mirror-search-item-symbol {
+        .universe-search-item-symbol {
           font-family: var(--font-serif, "Fraunces", serif);
           font-size: 16px;
           font-weight: 600;
           color: #1a1917;
           letter-spacing: -0.01em;
         }
-        .mirror-search-item-name {
+        .universe-search-item-name {
           font-size: 12px;
           color: #6b6861;
           margin-left: 14px;
@@ -162,7 +162,7 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .mirror-search-empty {
+        .universe-search-empty {
           padding: 20px;
           text-align: center;
           font-size: 13px;
@@ -170,9 +170,9 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
         }
       `}</style>
 
-      <div className="mirror-search-input-wrap">
+      <div className="universe-search-input-wrap">
         <svg
-          className="mirror-search-icon"
+          className="universe-search-icon"
           width="18"
           height="18"
           viewBox="0 0 24 24"
@@ -187,7 +187,7 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
         </svg>
         <input
           type="text"
-          className="mirror-search-input"
+          className="universe-search-input"
           placeholder={placeholder}
           value={query}
           onChange={(e) => {
@@ -200,28 +200,28 @@ export default function MirrorSearchBar({ lang, placeholder, helpText, universeS
         />
       </div>
 
-      <div className="mirror-search-help">
+      <div className="universe-search-help">
         {universe.length > 0 ? universeSizeText : helpText}
       </div>
 
       {isOpen && queryUpper.length >= 1 && (
-        <div className="mirror-search-dropdown">
+        <div className="universe-search-dropdown">
           {matches.length > 0 ? (
             matches.map((ticker, idx) => (
               <div
                 key={ticker.symbol}
-                className={`mirror-search-item ${idx === highlightedIndex ? "mirror-search-item-highlight" : ""}`}
+                className={`universe-search-item ${idx === highlightedIndex ? "universe-search-item-highlight" : ""}`}
                 onMouseDown={() => navigateToTicker(ticker.symbol)}
                 onMouseEnter={() => setHighlightedIndex(idx)}
               >
-                <span className="mirror-search-item-symbol">{ticker.symbol}</span>
+                <span className="universe-search-item-symbol">{ticker.symbol}</span>
                 {ticker.company_name && (
-                  <span className="mirror-search-item-name">{ticker.company_name}</span>
+                  <span className="universe-search-item-name">{ticker.company_name}</span>
                 )}
               </div>
             ))
           ) : (
-            <div className="mirror-search-empty">{helpText}</div>
+            <div className="universe-search-empty">{helpText}</div>
           )}
         </div>
       )}

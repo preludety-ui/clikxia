@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getTop5 } from "@/lib/api";
+import { getTop5, getMirrorTicker } from "@/lib/api";
 import { detectLang } from "@/lib/lang";
 import { t } from "@/lib/i18n";
 import SiteHeader from "@/app/components/SiteHeader";
@@ -17,14 +17,16 @@ export default async function StockSimplePage({ params }: PageProps) {
   const { symbol } = await params;
   const symbolUpper = symbol.toUpperCase();
 
-  const [top5Data, lang] = await Promise.all([
+  // Phase 1.5 : recherche elargie aux 2237 tickers via /v2/mirror/search
+  // Source unique : getMirrorTicker. Top 5 utilise uniquement pour recuperer le rank.
+  const [tickerData, top5Data, lang] = await Promise.all([
+    getMirrorTicker(symbolUpper).catch(() => null),
     getTop5().catch(() => null),
     detectLang(),
   ]);
 
-  const stock = top5Data?.top5.find((s) => s.symbol === symbolUpper);
-
-  if (!stock) {
+  // Cas 1 : ticker hors univers CLIKXIA (pas dans les 2237)
+  if (!tickerData || !tickerData.found || !tickerData.in_universe) {
     return (
       <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
         <SiteHeader compact />
@@ -38,15 +40,31 @@ export default async function StockSimplePage({ params }: PageProps) {
             marginTop: "20px",
             color: "#1a1917",
           }}>
-            {t(lang, "symbol_not_found", symbolUpper)}
+            {lang === "fr" ? `${symbolUpper} - Hors univers CLIKXIA` : `${symbolUpper} - Outside CLIKXIA universe`}
           </h1>
-          <p style={{ color: "#6b6861", fontSize: "14px", marginTop: "8px" }}>
-            {t(lang, "stock_not_in_top5")}
+          <p style={{ color: "#6b6861", fontSize: "14px", marginTop: "12px", lineHeight: 1.6 }}>
+            {lang === "fr"
+              ? "CLIKXIA suit 2 237 actions selectionnees sur des criteres stricts de liquidite, capitalisation boursiere et qualite fondamentale. Ce ticker ne fait pas partie de notre univers d'analyse actuel."
+              : "CLIKXIA tracks 2,237 stocks selected on strict criteria of liquidity, market capitalization and fundamental quality. This ticker is not part of our current analysis universe."}
           </p>
         </div>
       </div>
     );
   }
+
+  // Cas 2 : ticker dans les 2237 - construction de l'objet "stock" compatible JSX existant
+  // Le rank est recupere du top 5 si applicable (sinon 0 = pas dans top 5)
+  const top5Match = top5Data?.top5.find((s) => s.symbol === symbolUpper);
+  const stock = {
+    symbol: tickerData.symbol,
+    rank: top5Match?.rank ?? 0,
+    company_name: tickerData.company_name,
+    market_cap: tickerData.market_cap,
+    shares_outstanding: top5Match?.shares_outstanding ?? null,
+    recommendation: tickerData.clikxia_decision?.recommendation ?? "HOLD",
+    composite_score: tickerData.clikxia_decision?.composite_score ?? 0,
+    signals: tickerData.signals,
+  };
 
   const recoClass =
     stock.recommendation === "HOLD"
@@ -55,9 +73,9 @@ export default async function StockSimplePage({ params }: PageProps) {
       ? "sell"
       : "buy";
 
-  const momPct = Math.round(stock.signals.momentum_12_1.percentile);
-  const proxPct = Math.round(stock.signals.proximity_52w_high.percentile);
-  const volPct = Math.round(stock.signals.volume_abnormal.percentile);
+  const momPct = Math.round(stock.signals?.momentum_12_1?.percentile ?? 0);
+  const proxPct = Math.round(stock.signals?.proximity_52w_high?.percentile ?? 0);
+  const volPct = Math.round(stock.signals?.volume_abnormal?.percentile ?? 0);
 
   const reasons: string[] = [];
   if (proxPct >= 80) reasons.push(t(lang, "reason_proximity", proxPct));
@@ -306,7 +324,9 @@ export default async function StockSimplePage({ params }: PageProps) {
         </Link>
 
         <div className="hero">
-          <div className="hero-rank">{t(lang, "rank_of_day", stock.rank)}</div>
+          {stock.rank > 0 && (
+            <div className="hero-rank">{t(lang, "rank_of_day", stock.rank)}</div>
+          )}
           <div className="hero-symbol">{stock.symbol}</div>
           {stock.company_name && (
             <div className="hero-company">{stock.company_name}</div>

@@ -5,6 +5,7 @@ import { t } from "@/lib/i18n";
 import SiteHeader from "@/app/components/SiteHeader";
 import Disclaimer from "@/app/components/Disclaimer";
 import TrackPageView from "@/app/components/TrackPageView";
+import UniverseSearchBar from "@/app/components/UniverseSearchBar";
 
 export const revalidate = 300;
 
@@ -22,6 +23,16 @@ export default async function DashboardPage() {
     <div style={{ minHeight: "100vh", background: "#faf9f7", color: "#1a1917" }}>
       <SiteHeader compact />
       <TrackPageView event="dashboard_viewed" properties={{ lang }} />
+
+      {/* Search bar - 2 237 tickers (Phase 1.5 - architecture Watchlist) */}
+      <div style={{ maxWidth: "560px", margin: "20px auto 0", padding: "0 20px" }}>
+        <UniverseSearchBar
+          lang={lang}
+          placeholder={t(lang, "mirror_search_placeholder")}
+          helpText={t(lang, "mirror_search_help")}
+          universeSizeText={t(lang, "mirror_search_universe_size")}
+        />
+      </div>
 
       <div className="dashboard-container">
         <style>{`

@@ -7,10 +7,11 @@ import {
   type MirrorTop5HistoryResponse,
   type MirrorTop5Ticker,
   type Recommendation,
+  type MirrorRecommendation,
 } from "@/lib/api";
 import { translations, type Lang } from "@/lib/i18n";
 import RecommendationBadge from "@/app/components/RecommendationBadge";
-import MirrorSearchBar from "@/app/components/MirrorSearchBar";
+import MirrorRecommendationBadge from "@/app/components/MirrorRecommendationBadge";
 import DisclaimerClient from "@/app/components/DisclaimerClient";
 import SiteHeaderClient from "@/app/components/SiteHeaderClient";
 
@@ -29,9 +30,39 @@ import SiteHeaderClient from "@/app/components/SiteHeaderClient";
 //   - Godker-Odean-Smeets (BFI Chicago 2025) - anti-overconfidence
 // ============================================================
 
-type FilterStatus = "all" | "STRONG_BUY" | "BUY" | "HOLD" | "SELL" | "STRONG_SELL";
+// === The Mirror v1 - Filtres categories Mirror ===
+// Au lieu des 5 codes scanner (STRONG_BUY...STRONG_SELL), on filtre par
+// les 4 categories Mirror qui regroupent les 13 codes :
+//   - all  : tous les tickers
+//   - hold : HOLD / HOLD_WATCH / HOLD_TRAILING (a conserver)
+//   - watch : REVIEW / TRIM / WARNING (a surveiller / alleger modere)
+//   - reduce : TRIM_HEAVY / STOP_LOSS / EXIT / SCENARIO_BROKEN (a alleger fortement / solder)
+//   Note : TAKE_PROFIT / TAKE_PROFIT_TRAILING / LOCK_GAINS sont dans "hold" car position
+//   reste fondamentalement bonne ; le ticker n'est pas a sortir mais a securiser les gains.
+type FilterStatus = "all" | "hold" | "watch" | "reduce";
 type FilterPerf = "all" | "winners" | "losers";
 type SortKey = "date" | "pnl" | "score";
+
+/**
+ * Mappe un code Mirror vers sa categorie de filtre.
+ * Mapping valide Phase 0.4 (overlay Han-Zhou-Zhu JFE 2014) :
+ *   - hold   : positions saines OU gains a securiser (pas a sortir)
+ *   - watch  : surveillance active (degradation moderee)
+ *   - reduce : signal negatif fort (5 codes declencheurs d'exclusion overlay)
+ */
+function mirrorRecoCategory(code: MirrorRecommendation): "hold" | "watch" | "reduce" {
+  // 5 codes declencheurs exclusion overlay (Phase 0.4 validee)
+  if (code === "EXIT" || code === "STOP_LOSS" || code === "SCENARIO_BROKEN" ||
+      code === "TRIM_HEAVY" || code === "WARNING") {
+    return "reduce";
+  }
+  // Surveillance active
+  if (code === "REVIEW" || code === "TRIM") {
+    return "watch";
+  }
+  // Position saine ou gains a securiser
+  return "hold";
+}
 
 // Mini-sparkline en pur SVG (anti-bibliothèque, anti-bloat)
 function Sparkline({ values, color }: { values: number[]; color: string }) {
@@ -113,7 +144,15 @@ export default function TheMirrorPage() {
     let result = [...data.tickers];
 
     if (filterStatus !== "all") {
-      result = result.filter((tk) => tk.current_recommendation === filterStatus);
+      // === Filtre Mirror v1 ===
+      // On filtre sur mirror_recommendation (matrice 24 regles), pas sur
+      // current_recommendation (scanner). Les tickers sans mirror_recommendation
+      // (cas degrade) sont exclus du filtrage par categorie.
+      result = result.filter((tk) =>
+        tk.mirror_recommendation
+          ? mirrorRecoCategory(tk.mirror_recommendation) === filterStatus
+          : false
+      );
     }
     if (filterPerf === "winners") {
       result = result.filter((tk) => tk.pnl_pct > 0);
@@ -153,6 +192,18 @@ export default function TheMirrorPage() {
         @media (min-width: 1024px) {
           .mirror-container { max-width: 1080px; padding: 0 40px 40px; }
         }
+
+        /* Lien retour - meme pattern que /dashboard/[symbol] */
+        .back-link {
+          display: inline-block;
+          color: #6b6861;
+          font-size: 14px;
+          text-decoration: none;
+          margin-bottom: 16px;
+          font-family: var(--font-mono, monospace);
+          letter-spacing: 0.02em;
+        }
+        .back-link:hover { color: #1a1917; }
 
         .mirror-page-title {
           font-family: var(--font-serif, "Fraunces", serif);
@@ -310,11 +361,19 @@ export default function TheMirrorPage() {
           background: #ffffff;
           border: 1px solid #e8e6e1;
           border-radius: 12px;
-          overflow: hidden;
+          overflow-x: auto;
+          overflow-y: auto;
+          /* Scroll vertical interne au tableau (Phase 1.5b) :
+             le thead reste fige en haut, le scroll se fait dans le tbody. */
+          max-height: 70vh;
           margin-bottom: 32px;
+          /* Scroll fluide sur iOS et trackpad */
+          -webkit-overflow-scrolling: touch;
         }
         .mirror-table {
-          width: 100%;
+          /* Avec 13 colonnes, on impose une largeur min pour forcer le scroll
+             horizontal. Sur ecran <1500px, le scroll se declenche. */
+          min-width: 1500px;
           border-collapse: collapse;
           font-size: 13px;
         }
@@ -329,6 +388,11 @@ export default function TheMirrorPage() {
           text-transform: uppercase;
           letter-spacing: 0.08em;
           border-bottom: 1px solid #e8e6e1;
+          white-space: nowrap;
+          /* === En-tetes sticky (Phase 1.5b) === */
+          position: sticky;
+          top: 0;
+          z-index: 2;
         }
         .mirror-table tbody tr {
           border-bottom: 1px solid #f1efe9;
@@ -339,6 +403,34 @@ export default function TheMirrorPage() {
         .mirror-table td {
           padding: 14px;
           vertical-align: middle;
+          white-space: nowrap;
+        }
+
+        /* === Colonne Symbole sticky (Phase 1.5) ===
+           La 1re colonne reste fixe a gauche pendant le scroll horizontal.
+           Pattern Bloomberg / Yahoo Finance / TradingView pour tableaux larges. */
+        .mirror-table tbody td:first-child {
+          position: sticky;
+          left: 0;
+          z-index: 1;
+          /* Bordure droite + ombre pour separer visuellement de la zone scrollee */
+          border-right: 1px solid #e8e6e1;
+          box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.06);
+          background: #ffffff;
+        }
+        .mirror-table tbody tr:hover td:first-child {
+          background: #fcfaf5;
+        }
+        /* Intersection coin haut-gauche (header + colonne fixe) :
+           doit etre au-dessus des deux pour ne jamais etre cachee */
+        .mirror-table thead th:first-child {
+          position: sticky;
+          left: 0;
+          top: 0;
+          z-index: 3;
+          background: #f9f7f1;
+          border-right: 1px solid #e8e6e1;
+          box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.06);
         }
         .cell-symbol {
           display: flex;
@@ -442,6 +534,9 @@ export default function TheMirrorPage() {
       <SiteHeaderClient lang={lang} />
 
       <div className="mirror-container">
+        <Link href="/dashboard" className="back-link">
+          &larr; {t.back_to_dashboard}
+        </Link>
         <h1 className="mirror-page-title">{t.mirror_page_title}</h1>
         <p className="mirror-page-subtitle">{t.mirror_page_subtitle}</p>
 
@@ -517,29 +612,32 @@ export default function TheMirrorPage() {
               </div>
             </div>
 
-            {/* Search bar - Fonction 2.1 */}
-            <MirrorSearchBar
-              lang={lang}
-              placeholder={t.mirror_search_placeholder}
-              helpText={t.mirror_search_help}
-              universeSizeText={t.mirror_search_universe_size}
-            />
-
             {/* Tableau top 5 - Fonction 1.1 + 1.2 */}
             <h2 className="section-title">{t.mirror_page_title} · {data.tickers.length}</h2>
 
             <div className="filter-bar">
               <span className="filter-label">{lang === "fr" ? "Statut" : "Status"}</span>
               <div className="filter-group">
-                {(["all", "STRONG_BUY", "BUY", "HOLD", "SELL", "STRONG_SELL"] as FilterStatus[]).map((s) => (
-                  <button
-                    key={s}
-                    className={`filter-btn ${filterStatus === s ? "filter-btn-active" : ""}`}
-                    onClick={() => setFilterStatus(s)}
-                  >
-                    {s === "all" ? t.mirror_table_filter_all : s.replace("_", " ")}
-                  </button>
-                ))}
+                {(["all", "hold", "watch", "reduce"] as FilterStatus[]).map((s) => {
+                  // Label adapte par categorie (Phase 0.3 vocabulaire trading FR valide)
+                  const label =
+                    s === "all"
+                      ? t.mirror_table_filter_all
+                      : s === "hold"
+                      ? t.mirror_filter_category_hold
+                      : s === "watch"
+                      ? t.mirror_filter_category_watch
+                      : t.mirror_filter_category_reduce;
+                  return (
+                    <button
+                      key={s}
+                      className={`filter-btn ${filterStatus === s ? "filter-btn-active" : ""}`}
+                      onClick={() => setFilterStatus(s)}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
 
               <span className="filter-label" style={{ marginLeft: "8px" }}>
@@ -593,11 +691,16 @@ export default function TheMirrorPage() {
                       <th>{t.mirror_table_col_symbol}</th>
                       <th>{t.mirror_table_col_first_appearance}</th>
                       <th>{t.mirror_table_col_entry_price}</th>
+                      <th>{t.mirror_table_col_entry_score}</th>
+                      <th>{t.mirror_table_col_entry_recommendation}</th>
                       <th>{t.mirror_table_col_current_price}</th>
-                      <th>{t.mirror_table_col_price_chart}</th>
                       <th>{t.mirror_table_col_pnl}</th>
-                      <th>{t.mirror_table_col_recommendation}</th>
+                      <th>{t.mirror_table_col_drawdown}</th>
+                      <th>{t.mirror_table_col_regime}</th>
                       <th>{t.mirror_table_col_score}</th>
+                      <th>{t.mirror_table_col_price_chart}</th>
+                      <th>{lang === "fr" ? "Variation PnL" : "PnL chart"}</th>
+                      <th>{t.mirror_table_col_mirror_recommendation}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -660,43 +763,105 @@ function TickerRow({
   const scoreDelta = ticker.score_delta;
   const scoreDeltaSign = scoreDelta !== null && scoreDelta >= 0 ? "+" : "";
 
+  // === Drawdown depuis pic (Wilcox-Crittenden 2009, Grossman-Zhou 1993) ===
+  const dd = ticker.drawdown_from_peak_pct;
+  const ddIsCritical = dd !== null && dd >= 15; // Seuil EXIT (Han-Zhou-Zhu 2014)
+  const ddIsWarn = dd !== null && dd >= 10 && dd < 15;
+
+  // === Regime marche (Clare et al. JAM 2013, Lo-Remorov 2017) ===
+  const regime = ticker.market_regime;
+  const regimeLabelFR: Record<string, string> = {
+    BULL: "Haussier",
+    NEUTRAL: "Neutre",
+    BEAR: "Baissier",
+    PANIC: "Panique",
+    UNKNOWN: "—",
+  };
+  const regimeLabelEN: Record<string, string> = {
+    BULL: "Bull",
+    NEUTRAL: "Neutral",
+    BEAR: "Bear",
+    PANIC: "Panic",
+    UNKNOWN: "—",
+  };
+  const regimeText = regime
+    ? lang === "fr"
+      ? regimeLabelFR[regime] || regime
+      : regimeLabelEN[regime] || regime
+    : "—";
+
   return (
     <tr style={{ cursor: "pointer" }} onClick={() => (window.location.href = `/the-mirror/${ticker.symbol}`)}>
+      {/* Col 1 : Symbole */}
       <td data-label={t.mirror_table_col_symbol}>
         <div className="cell-symbol">
           <span className="cell-symbol-ticker">{ticker.symbol}</span>
           {ticker.company_name && <span className="cell-symbol-name">{ticker.company_name}</span>}
         </div>
       </td>
+
+      {/* Col 2 : Premiere apparition + n_appearances */}
       <td data-label={t.mirror_table_col_first_appearance}>
         <span className="cell-mono">{ticker.first_appearance_date}</span>
         <div className="cell-mono-sub">
-          {ticker.n_appearances} {t.mirror_ticker_n_appearances.replace("{0}", "").trim().split(" ").slice(-2).join(" ")}
+          {ticker.duration_days !== null
+            ? lang === "fr"
+              ? `${ticker.duration_days} j`
+              : `${ticker.duration_days} d`
+            : ""}
+          {ticker.n_appearances > 1 && ` · ${ticker.n_appearances}x`}
         </div>
       </td>
+
+      {/* Col 3 : Prix d'entree */}
       <td data-label={t.mirror_table_col_entry_price}>
         <span className="cell-mono">${ticker.entry_price.toFixed(2)}</span>
       </td>
+
+      {/* Col 4 : Score d'entree */}
+      <td data-label={t.mirror_table_col_entry_score}>
+        <span className="cell-mono">{ticker.entry_score?.toFixed(1) ?? "—"}</span>
+      </td>
+
+      {/* Col 5 : Reco a l'entree (scanner) */}
+      <td data-label={t.mirror_table_col_entry_recommendation}>
+        {ticker.entry_recommendation && (
+          <RecommendationBadge recommendation={ticker.entry_recommendation} />
+        )}
+      </td>
+
+      {/* Col 6 : Prix actuel */}
       <td data-label={t.mirror_table_col_current_price}>
         <span className="cell-mono">${ticker.current_price.toFixed(2)}</span>
       </td>
-      <td data-label={t.mirror_table_col_price_chart}>
-        <Sparkline values={priceValues} color={priceColor} />
-      </td>
+
+      {/* Col 7 : PnL */}
       <td data-label={t.mirror_table_col_pnl}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-          <span className={`cell-mono ${pnlPos ? "cell-pnl-pos" : "cell-pnl-neg"}`} style={{ fontWeight: 600 }}>
-            {pnlPos ? "+" : ""}
-            {ticker.pnl_pct.toFixed(2)}%
-          </span>
-          <Sparkline values={pnlValues} color={priceColor} />
-        </div>
+        <span className={`cell-mono ${pnlPos ? "cell-pnl-pos" : "cell-pnl-neg"}`} style={{ fontWeight: 600 }}>
+          {pnlPos ? "+" : ""}
+          {ticker.pnl_pct.toFixed(2)}%
+        </span>
       </td>
-      <td data-label={t.mirror_table_col_recommendation}>
-        {ticker.current_recommendation && (
-          <RecommendationBadge recommendation={ticker.current_recommendation} />
-        )}
+
+      {/* Col 8 : Drawdown depuis pic */}
+      <td data-label={t.mirror_table_col_drawdown}>
+        <span
+          className="cell-mono"
+          style={{
+            color: ddIsCritical ? "#9B2C2C" : ddIsWarn ? "#B7791F" : "#1a1917",
+            fontWeight: ddIsCritical || ddIsWarn ? 600 : 400,
+          }}
+        >
+          {dd !== null ? `${dd.toFixed(2)}%` : "—"}
+        </span>
       </td>
+
+      {/* Col 9 : Regime marche */}
+      <td data-label={t.mirror_table_col_regime}>
+        <span className="cell-mono cell-mono-sub">{regimeText}</span>
+      </td>
+
+      {/* Col 10 : Score actuel + delta */}
       <td data-label={t.mirror_table_col_score}>
         <span className="cell-mono">{ticker.current_score?.toFixed(1) ?? "—"}</span>
         {scoreDelta !== null && (
@@ -706,6 +871,25 @@ function TickerRow({
             ({scoreDeltaSign}
             {scoreDelta.toFixed(1)})
           </span>
+        )}
+      </td>
+
+      {/* Col 11 : Sparkline prix */}
+      <td data-label={t.mirror_table_col_price_chart}>
+        <Sparkline values={priceValues} color={priceColor} />
+      </td>
+
+      {/* Col 12 : Sparkline PnL */}
+      <td data-label={lang === "fr" ? "Variation PnL" : "PnL chart"}>
+        <Sparkline values={pnlValues} color={priceColor} />
+      </td>
+
+      {/* Col 13 : Recommandation Mirror */}
+      <td data-label={t.mirror_table_col_mirror_recommendation}>
+        {ticker.mirror_recommendation ? (
+          <MirrorRecommendationBadge code={ticker.mirror_recommendation} lang={lang} />
+        ) : (
+          <span className="cell-mono-sub">—</span>
         )}
       </td>
     </tr>
