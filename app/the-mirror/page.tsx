@@ -102,6 +102,7 @@ export default function TheMirrorPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterPerf, setFilterPerf] = useState<FilterPerf>("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Lecture langue depuis localStorage
   useEffect(() => {
@@ -143,6 +144,16 @@ export default function TheMirrorPage() {
     if (!data) return [];
     let result = [...data.tickers];
 
+    // Filtre recherche locale (Watchlist vs Portfolio - cf. recherche utilisateur 2025-2026)
+    // Cherche dans symbole OU nom de societe, insensible a la casse
+    if (searchTerm.trim()) {
+      const term = searchTerm.toUpperCase().trim();
+      result = result.filter((tk) =>
+        tk.symbol.toUpperCase().includes(term) ||
+        (tk.company_name?.toUpperCase().includes(term) ?? false)
+      );
+    }
+
     if (filterStatus !== "all") {
       // === Filtre Mirror v1 ===
       // On filtre sur mirror_recommendation (matrice 24 regles), pas sur
@@ -169,7 +180,7 @@ export default function TheMirrorPage() {
     }
 
     return result;
-  }, [data, filterStatus, filterPerf, sortKey]);
+  }, [data, filterStatus, filterPerf, sortKey, searchTerm]);
 
   return (
     <div className="the-mirror-page">
@@ -322,6 +333,62 @@ export default function TheMirrorPage() {
           margin-bottom: 16px;
           align-items: center;
         }
+        /* Recherche locale dans le tableau Mirror (Watchlist vs Portfolio) */
+        .mirror-table-search-wrap {
+          position: relative;
+          margin-bottom: 14px;
+          max-width: 360px;
+        }
+        .mirror-table-search-input-wrap {
+          display: flex;
+          align-items: center;
+          background: #ffffff;
+          border: 1px solid #e8e6e1;
+          border-radius: 8px;
+          padding: 8px 14px;
+          gap: 10px;
+          transition: border-color 0.15s;
+        }
+        .mirror-table-search-input-wrap:focus-within {
+          border-color: #0A8B5C;
+        }
+        .mirror-table-search-input {
+          flex: 1;
+          font-size: 13px;
+          color: #1a1917;
+          font-family: inherit;
+          background: transparent;
+          border: none;
+          outline: none;
+        }
+        .mirror-table-search-input::placeholder {
+          color: #8a8680;
+        }
+        .mirror-table-search-icon {
+          color: #6b6861;
+          flex-shrink: 0;
+        }
+        .mirror-table-search-clear {
+          background: transparent;
+          border: none;
+          color: #8a8680;
+          cursor: pointer;
+          padding: 0 2px;
+          font-size: 16px;
+          line-height: 1;
+          transition: color 0.1s;
+        }
+        .mirror-table-search-clear:hover {
+          color: #1a1917;
+        }
+        .mirror-table-search-no-results {
+          padding: 24px 16px;
+          text-align: center;
+          font-size: 13px;
+          color: #8a8680;
+          font-style: italic;
+        }
+
         .filter-group {
           display: flex;
           gap: 4px;
@@ -615,6 +682,43 @@ export default function TheMirrorPage() {
             {/* Tableau top 5 - Fonction 1.1 + 1.2 */}
             <h2 className="section-title">{t.mirror_page_title} · {data.tickers.length}</h2>
 
+            {/* Recherche locale dans le tableau Mirror (Watchlist vs Portfolio - 2025-2026) */}
+            <div className="mirror-table-search-wrap">
+              <div className="mirror-table-search-input-wrap">
+                <svg
+                  className="mirror-table-search-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  className="mirror-table-search-input"
+                  placeholder={t.mirror_search_filter_placeholder}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    className="mirror-table-search-clear"
+                    onClick={() => setSearchTerm("")}
+                    aria-label="Clear search"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="filter-bar">
               <span className="filter-label">{lang === "fr" ? "Statut" : "Status"}</span>
               <div className="filter-group">
@@ -682,7 +786,9 @@ export default function TheMirrorPage() {
             <div className="table-wrap">
               {filteredTickers.length === 0 ? (
                 <div className="empty-state">
-                  {lang === "fr" ? "Aucun ticker ne correspond aux filtres." : "No tickers match the filters."}
+                  {searchTerm.trim()
+                    ? t.mirror_search_no_results
+                    : (lang === "fr" ? "Aucun ticker ne correspond aux filtres." : "No tickers match the filters.")}
                 </div>
               ) : (
                 <table className="mirror-table">
